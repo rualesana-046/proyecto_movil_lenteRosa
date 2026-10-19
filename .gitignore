@@ -1,0 +1,43 @@
+# Secretos y configuración local (nunca se versionan)
+.env
+.env.*
+!.env.example
+local.properties
+google-services.json
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Gradle y compilados
+.gradle/
+.kotlin/
+build/
+out/
+bin/
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+*.apk
+*.aab
+*.log
+hs_err_pid*
+
+# Android
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# Editores
+.idea/
+*.iml
+.vscode/
+.fleet/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
