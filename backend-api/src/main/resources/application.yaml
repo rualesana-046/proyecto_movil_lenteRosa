@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: lente-rosa-api
+  datasource:
+    # Por defecto apunta al PostGIS local de infra/docker-compose.yml.
+    # En la nube, las tres variables llegan desde el gestor de secretos.
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/lenterosa}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      base-path: /api/v1
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
