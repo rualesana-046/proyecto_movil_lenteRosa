@@ -1,0 +1,14 @@
+# Finales de línea LF en todo el repositorio
+* text=auto eol=lf
+
+# Los scripts de Windows necesitan CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios
+*.jar binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ttf binary
+*.otf binary
