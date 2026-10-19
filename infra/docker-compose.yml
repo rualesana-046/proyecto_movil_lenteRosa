@@ -1,0 +1,27 @@
+# PostGIS local para desarrollar la API. Las pruebas no lo usan: usan Testcontainers.
+# Uso, desde la raíz del repositorio:
+#   docker compose --env-file .env -f infra/docker-compose.yml up -d
+name: lente-rosa
+
+services:
+  postgis:
+    image: postgis/postgis:18-3.6
+    # La imagen solo existe para amd64; en Apple Silicon corre emulada.
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: lenterosa
+      POSTGRES_USER: ${DATABASE_USERNAME:?Define DATABASE_USERNAME en .env}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Define DATABASE_PASSWORD en .env}
+    ports:
+      # Solo accesible desde este equipo. Se usa 5433 para convivir con un PostgreSQL local en 5432.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgis-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d lenterosa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgis-data:
