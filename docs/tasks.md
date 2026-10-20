@@ -6,7 +6,7 @@ Cada día cierra con algo que se prueba. Los días 13 y 14 son margen y entrega.
 
 | Día | Tarea | Requisitos | Estado |
 |---|---|---|---|
-| 1 | Base: monorepo, guías del agente, API con `/api/v1/health` y prueba sobre PostGIS, app vacía que compila, CI | — | en revisión |
+| 1 | Base: monorepo, guías del agente, API con `/api/v1/health` y prueba sobre PostGIS, app vacía que compila, CI | — | completada |
 | 2 | Datos: migraciones Flyway, módulos `places` y `reviews`, consulta como invitada | RF-01 | pendiente |
 | 3 | Índice: `comfortindex` con promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite | RF-03 | pendiente |
 | 4 | Identidad: Firebase Auth en la app, validación de tokens en la API, guardar y valorar, límite de abuso | RF-02, RF-04, RF-05 | pendiente |
