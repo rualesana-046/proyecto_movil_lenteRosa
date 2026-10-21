@@ -21,6 +21,11 @@ Cada día cierra con algo que se prueba. Los días 13 y 14 son margen y entrega.
 | 13 | Margen: corregir lo pendiente, liquid glass y animaciones finales | RNF-03 | pendiente |
 | 14 | Entrega: APK firmado, instalación limpia, documentación, deuda técnica y demo | — | pendiente |
 
+## Notas para la app (días 6–7)
+
+- Pantalla Aportar: las dimensiones Iluminación, Afluencia de mujeres y Visibilidad comercial son obligatorias. Experiencia nocturna es obligatoria si eligió "Fui de noche"; si eligió "Fui de día", esa pregunta ofrece la opción "No fui de noche" y se envía sin valor (`nightExperience` nulo).
+- Ficha del lugar: si el promedio de una dimensión es nulo (sin opiniones, o sin visitas nocturnas para Experiencia nocturna), se muestra "Sin datos", nunca 0.
+
 ## Decisiones pendientes
 
 - Proveedor de mosaicos OpenStreetMap para MapLibre: decidir antes del día 6.
