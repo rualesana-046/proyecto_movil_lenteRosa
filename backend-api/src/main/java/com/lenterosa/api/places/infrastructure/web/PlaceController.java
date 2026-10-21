@@ -3,6 +3,7 @@ package com.lenterosa.api.places.infrastructure.web;
 import com.lenterosa.api.places.application.NearbySearch;
 import com.lenterosa.api.places.application.PlaceQueryService;
 import com.lenterosa.api.places.domain.GeoPoint;
+import com.lenterosa.api.reviews.PublicReview;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -63,5 +64,19 @@ class PlaceController {
     @GetMapping("/{id}")
     PlaceDetailResponse detail(@PathVariable UUID id) {
         return PlaceDetailResponse.from(places.getDetail(id));
+    }
+
+    /** Opiniones de un lugar, de la más reciente a la más antigua, siempre anónimas. */
+    @GetMapping("/{id}/reviews")
+    PageResponse<PublicReview> reviews(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "El número de página no puede ser negativo.")
+            int page,
+            @RequestParam(defaultValue = "20")
+            @Min(value = 1, message = "Cada página puede tener entre 1 y 50 resultados.")
+            @Max(value = PlaceQueryService.MAX_PAGE_SIZE, message = "Cada página puede tener entre 1 y 50 resultados.")
+            int size) {
+        return PageResponse.from(places.listReviews(id, PageRequest.of(page, size)), review -> review);
     }
 }
