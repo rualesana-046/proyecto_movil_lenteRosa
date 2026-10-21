@@ -61,7 +61,9 @@ Las pruebas levantan su propio PostGIS con Testcontainers (no necesitan `.env`) 
 
 - `GET /api/v1/health`, `/api/v1/health/liveness` y `/api/v1/health/readiness` responden 200 con `status` `UP`, sin detalles.
 - `/actuator/health` no está expuesto.
-- La migración de Flyway habilita PostGIS 3.6.
+- Las migraciones habilitan PostGIS 3.6 y sus restricciones rechazan datos inválidos.
+- La búsqueda por distancia, el detalle con promedios por dimensión y las opiniones anónimas, por HTTP real.
+- Los parámetros fuera de los límites responden 400 con un mensaje claro.
 - Los límites entre módulos (Spring Modulith) y las reglas de capas (ArchUnit).
 
 La imagen `postgis/postgis` solo existe para amd64: en Macs con Apple Silicon corre emulada y la primera ejecución tarda más.
@@ -89,21 +91,24 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
    Usa el puerto `5433` de este equipo (no el 5432), para convivir con un PostgreSQL local que ya esté instalado. La API apunta a `localhost:5433` por defecto.
 
-2. Carga las variables de `.env` en la terminal (Spring no lee `.env` por sí solo) y arranca la API:
+2. Carga las variables de `.env` en la terminal (Spring no lee `.env` por sí solo) y arranca la API con el perfil `local`, que agrega datos **ficticios** de Pasto (8 lugares marcados `[FICTICIO]` y 6 opiniones):
 
    - Mac (zsh/bash):
 
      ```bash
      set -a; source .env; set +a
-     cd backend-api && ./gradlew bootRun
+     cd backend-api && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
      ```
 
    - Windows (PowerShell):
 
      ```powershell
      Get-Content .env | Where-Object { $_ -match '^[A-Z_]+=' } | ForEach-Object { $k, $v = $_ -split '=', 2; Set-Item "env:$k" $v }
+     $env:SPRING_PROFILES_ACTIVE = "local"
      cd backend-api; .\gradlew.bat bootRun
      ```
+
+   Usa siempre el perfil `local` con tu base local: si la arrancas una vez con él y después sin él, Flyway avisa que falta la migración del seed. Los datos ficticios nunca entran al jar que se despliega.
 
 3. Comprueba la salud: `curl http://localhost:8080/api/v1/health` debe responder `{"groups":["liveness","readiness"],"status":"UP"}`.
 
@@ -112,6 +117,23 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
    ```bash
    docker compose --env-file .env -f infra/docker-compose.yml down
    ```
+
+### Endpoints públicos (sin iniciar sesión)
+
+| Método | Ruta | Qué devuelve |
+|---|---|---|
+| GET | `/api/v1/places?lat=&lng=&radiusMeters=&q=&page=&size=` | Lugares cercanos, del más cercano al más lejano, con `distanceMeters`. Radio de 1 a 5000 m (por defecto 1000); `size` de 1 a 50 (por defecto 20) |
+| GET | `/api/v1/places/{id}` | Detalle con `reviewCount`, `lastReviewAt` y `averages` por dimensión (nulos si no hay datos) |
+| GET | `/api/v1/places/{id}/reviews?page=&size=` | Opiniones anónimas, de la más reciente a la más antigua |
+| GET | `/api/v1/health` | Salud de la API |
+
+Ejemplo con los datos ficticios:
+
+```bash
+curl "http://localhost:8080/api/v1/places?lat=1.2136&lng=-77.2811&radiusMeters=1000"
+```
+
+Los errores siguen el formato RFC 9457 (`application/problem+json`): 400 con un mensaje claro si un parámetro está fuera de los límites, y 404 si el lugar no existe. Las coordenadas de la búsqueda no se guardan ni se escriben en los logs.
 
 ### App en el emulador
 
