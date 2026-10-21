@@ -1,0 +1,7 @@
+# Perfil solo para desarrollo local: SPRING_PROFILES_ACTIVE=local.
+# Agrega los datos ficticios de Pasto. Nunca se activa en la nube.
+spring:
+  flyway:
+    locations:
+      - classpath:db/migration
+      - classpath:db/seed
