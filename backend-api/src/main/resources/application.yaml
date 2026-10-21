@@ -7,6 +7,12 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/lenterosa}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+  jpa:
+    # Sin sesión abierta en la vista: las consultas terminan en la capa de aplicación.
+    open-in-view: false
+    hibernate:
+      # Flyway es el único dueño del esquema; Hibernate no lo crea ni lo modifica.
+      ddl-auto: none
 
 server:
   port: ${PORT:8080}
