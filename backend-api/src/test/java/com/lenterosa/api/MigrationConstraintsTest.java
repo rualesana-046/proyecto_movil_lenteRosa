@@ -11,26 +11,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
 // Verifica que las restricciones de V2 y V3 protegen los datos aunque alguien escriba directo en la base.
 // Cada prueba corre en una transacción que se revierte al terminar.
 @SpringBootTest
-@Testcontainers
+@Import(PostgisTestcontainersConfiguration.class)
 @Transactional
 class MigrationConstraintsTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer postgis = new PostgreSQLContainer(
-            DockerImageName.parse("postgis/postgis:18-3.6").asCompatibleSubstituteFor("postgres"));
 
     @Autowired
     JdbcTemplate jdbc;
