@@ -72,10 +72,13 @@ El repositorio es **público**. Ningún secreto entra nunca al historial.
 
 ## Git y commits
 
-- `main` es estable. Una rama por tarea, por ejemplo `feat/RF-03-indice`.
-- Commits pequeños en formato convencional (`feat:`, `fix:`, `docs:`, `test:`, `chore:`, `ci:`, `refactor:`), en español.
-- Antes de cada commit: diff y pruebas revisados por AM.
-- Integración por Pull Request con CI en verde y aprobación de AM antes del merge.
+- `main` es estable y está protegida: todo cambio entra por Pull Request.
+- Una rama por tarea, por ejemplo `feat/RF-03-indice`.
+- Se trabaja con commits pequeños, uno por paso lógico (migración, dependencia, dominio de un módulo, adaptador, endpoint, documentación). Cada commit lleva sus propias pruebas.
+- **Cada commit compila y pasa las pruebas por sí solo**: antes de cada commit se ejecuta el build de la parte afectada.
+- Mensajes en formato Conventional Commits **con alcance**, en español: `tipo(alcance): descripción`. Tipos: `feat`, `fix`, `docs`, `test`, `build`, `ci`, `refactor`, `chore`. Alcances: el módulo (`places`, `reviews`, `comfortindex`, `insights`, `alerts`, `users`, `shared`), `db`, `api`, `app`, `ci`, `agents`, `tasks`.
+- El diff y las pruebas los revisa AM antes de cada commit o lote de commits aprobado.
+- Integración por Pull Request con CI en verde y aprobación de AM. El merge es **por rebase**, para que `main` conserve todos los commits de la rama.
 - Las tareas se siguen en `docs/tasks.md` con los estados: pendiente, en curso, bloqueada, en revisión, completada.
 
 ## Costos
