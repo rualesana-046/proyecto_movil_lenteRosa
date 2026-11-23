@@ -90,6 +90,23 @@ class PlaceApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Cada resultado de la búsqueda trae comfortIndex y comfortLabel")
+    void searchIncludesComfortSummary() throws Exception {
+        UUID rated = insertPlace("Lugar con opiniones", "PARK", 1.2136 + 0.0009, -77.2811);
+        insertPlace("Lugar sin opiniones", "OTHER", 1.2136 + 0.0018, -77.2811);
+        for (int i = 0; i < 6; i++) {
+            insertReviewDaysAgo(rated, 1, 1, 1, 1, "NIGHT", 1);
+        }
+
+        JsonNode items = json.readTree(get("/api/v1/places?" + CENTER).body()).get("items");
+
+        assertThat(items.get(0).get("comfortIndex").asInt()).isEqualTo(17);
+        assertThat(items.get(0).get("comfortLabel").asString()).isEqualTo("UNCOMFORTABLE");
+        assertThat(items.get(1).get("comfortIndex").isNull()).isTrue();
+        assertThat(items.get(1).get("comfortLabel").asString()).isEqualTo("FEW_OPINIONS");
+    }
+
+    @Test
     @DisplayName("El detalle trae la cantidad, la fecha más reciente y el promedio de cada dimensión")
     void detailIncludesAveragesPerDimension() throws Exception {
         UUID place = insertPlace("Parque con opiniones", "PARK", 1.2136, -77.2811);

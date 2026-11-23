@@ -83,6 +83,17 @@ class PlaceQueryServiceTest {
     }
 
     @Test
+    @DisplayName("Cada resultado de la búsqueda trae el Índice de Confort de su lugar")
+    void searchResultsIncludeComfort() {
+        NearbySearch search = new NearbySearch(PASTO, NearbySearch.DEFAULT_RADIUS_METERS, null);
+
+        PlaceSearchResult result = service.searchNearby(search, PageRequest.of(0, 20)).getContent().getFirst();
+
+        assertThat(result.nearby().place()).isEqualTo(PARK);
+        assertThat(result.comfort()).isEqualTo(PARK_COMFORT);
+    }
+
+    @Test
     @DisplayName("El radio debe estar entre 1 y 5000 metros")
     void radiusMustBeWithinLimits() {
         assertThatIllegalArgumentException().isThrownBy(() -> new NearbySearch(PASTO, 0, null));

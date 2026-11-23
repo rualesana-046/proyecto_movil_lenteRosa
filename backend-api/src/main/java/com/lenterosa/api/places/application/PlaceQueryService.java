@@ -1,8 +1,11 @@
 package com.lenterosa.api.places.application;
 
+import com.lenterosa.api.comfortindex.ComfortIndex;
 import com.lenterosa.api.comfortindex.ComfortIndexQueries;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,9 +30,13 @@ public class PlaceQueryService {
         this.comfort = comfort;
     }
 
-    public Page<NearbyPlace> searchNearby(NearbySearch search, Pageable pageable) {
+    /** Lugares cercanos con su índice; el índice de toda la página se calcula con una sola consulta. */
+    public Page<PlaceSearchResult> searchNearby(NearbySearch search, Pageable pageable) {
         requireValidPage(pageable);
-        return places.findNearby(search, pageable);
+        Page<NearbyPlace> page = places.findNearby(search, pageable);
+        List<UUID> ids = page.getContent().stream().map(nearby -> nearby.place().id()).toList();
+        Map<UUID, ComfortIndex> comfortByPlace = ids.isEmpty() ? Map.of() : comfort.forPlaces(ids);
+        return page.map(nearby -> new PlaceSearchResult(nearby, comfortByPlace.get(nearby.place().id())));
     }
 
     public PlaceDetail getDetail(UUID placeId) {
