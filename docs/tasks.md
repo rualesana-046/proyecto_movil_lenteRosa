@@ -20,7 +20,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF | Funcionalidad | Módulos y piezas | Estado | PR |
 |---|---|---|---|---|
 | RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en curso: API completada, con el Índice de Confort; falta la app | #3, #5 |
-| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | en curso: API completada; falta la app | #9 |
+| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | en revisión: API y app (registro, Google, verificación, apodo, eliminar cuenta) | #9 |
 | RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en curso: API completada; falta la app | #5 |
 | RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso), pantalla Aportar | pendiente | — |
 | RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
@@ -49,7 +49,6 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 - **RF-04, pantalla Aportar:** Iluminación, Afluencia de mujeres y Visibilidad comercial son obligatorias. Experiencia nocturna es obligatoria si eligió "Fui de noche"; si eligió "Fui de día", esa pregunta ofrece la opción "No fui de noche" y se envía sin valor (`nightExperience` nulo).
 - **RF-01, ficha del lugar:** si el promedio de una dimensión es nulo (sin opiniones, o sin visitas nocturnas para Experiencia nocturna), se muestra "Sin datos", nunca 0.
 - **RF-03, índice en la app:** etiquetas en español: `VERY_COMFORTABLE` → Muy cómodo, `COMFORTABLE` → Cómodo, `MIXED_OPINIONS` → Opiniones mixtas, `UNCOMFORTABLE` → Poco cómodo, `FEW_OPINIONS` → Pocas opiniones. Con `index` nulo no se muestra número. Si `nightDataMissing` es verdadero, indicar que faltan opiniones de noche. Siempre con el aviso de que el índice refleja percepción comunitaria y no garantiza seguridad.
-- **App:** Hilt y KSP se incorporan con la primera pantalla que tenga dependencias reales que inyectar (RF-09, RF-11).
 
 ## Decisiones pendientes
 
