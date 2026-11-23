@@ -48,6 +48,16 @@ Abre `android-app/` en Android Studio una vez: crea `android-app/local.propertie
 - Mac: `sdk.dir=/Users/<tu-usuario>/Library/Android/sdk`
 - Windows: `sdk.dir=C\:\\Users\\<tu-usuario>\\AppData\\Local\\Android\\Sdk`
 
+### Firebase (cuentas, RF-02)
+
+- **App:** descarga `google-services.json` desde la consola de Firebase (Configuración del proyecto → tu app Android `com.lenterosa.app`) y guárdalo en `android-app/app/google-services.json`. No se versiona. Para iniciar sesión con Google, registra en Firebase las huellas SHA-1 y SHA-256 de la llave de depuración de cada equipo:
+
+  ```bash
+  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+  ```
+
+- **API:** define `FIREBASE_PROJECT_ID` (el identificador público del proyecto, no es un secreto) al arrancarla. Sin esa variable, la API rechaza todos los inicios de sesión; la consulta como invitada sigue funcionando.
+
 ## Probar
 
 ### API
@@ -97,7 +107,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
      ```bash
      set -a; source .env; set +a
-     cd backend-api && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+     cd backend-api && SPRING_PROFILES_ACTIVE=local FIREBASE_PROJECT_ID=lente-rosa-app ./gradlew bootRun
      ```
 
    - Windows (PowerShell):
@@ -105,6 +115,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
      ```powershell
      Get-Content .env | Where-Object { $_ -match '^[A-Z_]+=' } | ForEach-Object { $k, $v = $_ -split '=', 2; Set-Item "env:$k" $v }
      $env:SPRING_PROFILES_ACTIVE = "local"
+     $env:FIREBASE_PROJECT_ID = "lente-rosa-app"
      cd backend-api; .\gradlew.bat bootRun
      ```
 
@@ -126,6 +137,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 | GET | `/api/v1/places/{id}` | Detalle con `reviewCount`, `lastReviewAt`, `averages` por dimensión (nulos si no hay datos) y el bloque `comfort` del Índice de Confort |
 | GET | `/api/v1/places/{id}/reviews?page=&size=` | Opiniones anónimas, de la más reciente a la más antigua |
 | GET | `/api/v1/health` | Salud de la API |
+| PUT / GET / DELETE | `/api/v1/me` | Registrar, consultar o eliminar la propia cuenta. **Requiere** `Authorization: Bearer <ID token de Firebase>`; al eliminar, las opiniones quedan anónimas |
 
 Ejemplo con los datos ficticios:
 

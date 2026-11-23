@@ -19,13 +19,15 @@ RF-02 pide registro e inicio de sesión con correo o Google (Firebase Authentica
 5. **Endpoints.** `PUT /api/v1/me` registra la cuenta (idempotente), `GET /api/v1/me` la consulta y `DELETE /api/v1/me` la elimina.
 6. **Eliminar la cuenta** deja anónimas sus opiniones (`author_id = NULL`, sin borrarlas) y borra el registro, en una sola transacción (Ley 1581 de 2012; resuelve la parte de TD-05 que no depende de RF-04). Es idempotente. `AccountService` usa `@Transactional` porque la operación abarca dos módulos; es la excepción a los casos de uso sin anotaciones de Spring.
 
-### App (pendiente de implementar en este mismo PR)
+### App
 
 7. Firebase Authentication con correo y contraseña, y con Google mediante Credential Manager.
 8. **Apodo:** se guarda solo en Firebase como `displayName`, nunca en la API; las opiniones siguen siendo anónimas.
 9. **Correo verificado obligatorio para opinar (RF-04).** La API lo exigirá con el claim `email_verified` al implementar RF-04.
 10. **Eliminar la cuenta pide reautenticación** en la app antes de borrar en Firebase y llamar a `DELETE /api/v1/me`.
-11. `google-services.json` nunca se versiona; el CI genera uno de relleno con valores falsos solo para compilar.
+11. `google-services.json` nunca se versiona; el CI copia `.github/ci/google-services.placeholder.json`, con valores falsos, solo para compilar.
+12. El orden al eliminar es reautenticación → `DELETE /api/v1/me` (con un token recién emitido) → borrar en Firebase. Si la API falla, la cuenta de Firebase no se toca.
+13. La app incorpora Hilt y KSP (ADR 0001) y llama a la API con Retrofit; los tokens nunca se escriben en los logs. En depuración, la API local se alcanza por `http://10.0.2.2:8080`; la versión publicada solo permite HTTPS.
 
 ## Consecuencias
 
