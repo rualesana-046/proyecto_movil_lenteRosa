@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.lenterosa.api.comfortindex.ComfortIndex;
 import com.lenterosa.api.comfortindex.ComfortLabel;
+import com.lenterosa.api.comfortindex.domain.RatingAggregates;
+import com.lenterosa.api.comfortindex.domain.RatingSample;
 import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
@@ -18,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -83,7 +86,6 @@ class ComfortIndexServiceTest {
 
         @Override
         public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
-            queries++;
             return ratings.stream().filter(r -> placeIds.contains(r.placeId())).toList();
         }
 
@@ -97,9 +99,25 @@ class ComfortIndexServiceTest {
             return Page.empty(pageable);
         }
 
+        // Simula la consulta de la base con las sumas en memoria del dominio, agrupadas por lugar.
         @Override
         public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
-            return List.of();
+            queries++;
+            return ratings.stream()
+                    .filter(r -> placeIds.contains(r.placeId()))
+                    .collect(Collectors.groupingBy(ReviewRatings::placeId))
+                    .entrySet().stream()
+                    .map(entry -> toSums(entry.getKey(), RatingAggregates.from(entry.getValue().stream()
+                            .map(r -> new RatingSample(r.createdAt(), r.lighting(), r.womenPresence(),
+                                    r.commercialVisibility(), r.nightExperience()))
+                            .toList(), now)))
+                    .toList();
+        }
+
+        private static DecayedRatingSums toSums(UUID placeId, RatingAggregates a) {
+            return new DecayedRatingSums(placeId, a.reviewCount(), a.totalWeight(), a.lightingWeightedSum(),
+                    a.womenPresenceWeightedSum(), a.commercialVisibilityWeightedSum(), a.nightExperienceWeight(),
+                    a.nightExperienceWeightedSum(), a.reviewMeanWeightedSum(), a.reviewMeanSquaredWeightedSum());
         }
     }
 }
