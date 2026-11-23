@@ -16,9 +16,6 @@ public interface ReviewQueries {
     /** Opiniones de un lugar, de la más reciente a la más antigua, sin datos de la autora. */
     Page<PublicReview> listForPlace(UUID placeId, Pageable pageable);
 
-    /** Calificaciones de todas las opiniones de los lugares indicados, en una sola consulta. */
-    List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds);
-
     /**
      * Sumas ponderadas por antigüedad de las opiniones de cada lugar, calculadas en la base con una
      * sola consulta. Los lugares sin opiniones no aparecen en la lista.

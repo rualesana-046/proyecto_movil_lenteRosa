@@ -141,19 +141,6 @@ class JpaReviewRepositoryTest {
     }
 
     @Test
-    @DisplayName("Las opiniones de varios lugares se leen en una consulta, solo de esos lugares")
-    void findAllByPlaceIdsOnlyReturnsGivenPlaces() {
-        UUID thirdPlaceId = insertPlace();
-        Review first = save(placeId, DimensionScores.of(1, 1, 1, 1), VisitPeriod.NIGHT, T0);
-        Review second = save(otherPlaceId, DimensionScores.of(4, 4, 3, null), VisitPeriod.DAY, T0.plusSeconds(60));
-        save(thirdPlaceId, DimensionScores.of(5, 5, 5, 5), VisitPeriod.NIGHT, T0);
-
-        List<Review> reviews = repository.findAllByPlaceIds(List.of(placeId, otherPlaceId));
-
-        assertThat(reviews).containsExactlyInAnyOrder(first, second);
-    }
-
-    @Test
     @DisplayName("Las sumas ponderadas se calculan en la base: peso 1 hoy y 0,5 a los 90 días")
     void decayedSumsAreComputedInTheDatabase() {
         Instant now = T0.plus(Duration.ofDays(90));

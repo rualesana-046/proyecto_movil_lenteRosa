@@ -4,7 +4,6 @@ import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.DimensionAverages;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
-import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
 import com.lenterosa.api.reviews.domain.Comment;
 import com.lenterosa.api.reviews.domain.Rating;
@@ -51,14 +50,6 @@ public class ReviewQueryService implements ReviewQueries {
     }
 
     @Override
-    public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
-        if (placeIds.isEmpty()) {
-            return List.of();
-        }
-        return reviews.findAllByPlaceIds(placeIds).stream().map(ReviewQueryService::toRatings).toList();
-    }
-
-    @Override
     public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
         if (placeIds.isEmpty()) {
             return List.of();
@@ -67,17 +58,6 @@ public class ReviewQueryService implements ReviewQueries {
             throw new IllegalArgumentException("La vida media debe ser positiva: " + halfLifeDays);
         }
         return reviews.decayedRatingSums(placeIds, now, halfLifeDays);
-    }
-
-    private static ReviewRatings toRatings(Review review) {
-        Rating night = review.scores().nightExperience();
-        return new ReviewRatings(
-                review.placeId(),
-                review.scores().lighting().value(),
-                review.scores().womenPresence().value(),
-                review.scores().commercialVisibility().value(),
-                night == null ? null : night.value(),
-                review.createdAt());
     }
 
     private static PublicReview toPublic(Review review) {

@@ -9,7 +9,6 @@ import com.lenterosa.api.comfortindex.domain.RatingSample;
 import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
-import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
 import java.time.Clock;
 import java.time.Duration;
@@ -65,28 +64,28 @@ class ComfortIndexServiceTest {
         assertThat(inAYear.label()).isEqualTo(ComfortLabel.FEW_OPINIONS);
     }
 
-    private static ReviewRatings ratings(UUID placeId, int ageDays, int lighting, int womenPresence,
+    // Calificaciones de prueba de un lugar.
+    private record Rated(UUID placeId, int lighting, int womenPresence, int commercialVisibility,
+            Integer nightExperience, Instant createdAt) {
+    }
+
+    private static Rated ratings(UUID placeId, int ageDays, int lighting, int womenPresence,
             int commercialVisibility, Integer nightExperience) {
-        return new ReviewRatings(placeId, lighting, womenPresence, commercialVisibility, nightExperience,
+        return new Rated(placeId, lighting, womenPresence, commercialVisibility, nightExperience,
                 NOW.minus(Duration.ofDays(ageDays)));
     }
 
     private static final class FakeReviews implements ReviewQueries {
 
-        private final List<ReviewRatings> ratings;
+        private final List<Rated> ratings;
         private int queries;
 
-        FakeReviews(List<ReviewRatings> ratings) {
+        FakeReviews(List<Rated> ratings) {
             this.ratings = ratings;
         }
 
         int queries() {
             return queries;
-        }
-
-        @Override
-        public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
-            return ratings.stream().filter(r -> placeIds.contains(r.placeId())).toList();
         }
 
         @Override
@@ -105,7 +104,7 @@ class ComfortIndexServiceTest {
             queries++;
             return ratings.stream()
                     .filter(r -> placeIds.contains(r.placeId()))
-                    .collect(Collectors.groupingBy(ReviewRatings::placeId))
+                    .collect(Collectors.groupingBy(Rated::placeId))
                     .entrySet().stream()
                     .map(entry -> toSums(entry.getKey(), RatingAggregates.from(entry.getValue().stream()
                             .map(r -> new RatingSample(r.createdAt(), r.lighting(), r.womenPresence(),
