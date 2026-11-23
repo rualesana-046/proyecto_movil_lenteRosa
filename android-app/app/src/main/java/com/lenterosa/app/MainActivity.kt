@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Pantalla provisional del día 1; el onboarding real llega el día 6.
+// Pantalla provisional; la reemplaza el onboarding (RF-11).
 @Composable
 fun WelcomeScreen(modifier: Modifier = Modifier) {
     Column(
