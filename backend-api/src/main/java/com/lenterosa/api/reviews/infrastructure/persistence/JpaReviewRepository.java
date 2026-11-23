@@ -71,11 +71,6 @@ class JpaReviewRepository implements ReviewRepository {
     }
 
     @Override
-    public List<Review> findAllByPlaceIds(Collection<UUID> placeIds) {
-        return jpa.findByPlaceIdIn(placeIds).stream().map(ReviewEntity::toDomain).toList();
-    }
-
-    @Override
     public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
         return jdbc.sql(DECAYED_SUMS_SQL)
                 .param("now", OffsetDateTime.ofInstant(now, ZoneOffset.UTC))

@@ -16,7 +16,6 @@ import com.lenterosa.api.reviews.DimensionAverages;
 import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
-import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
 import java.time.Instant;
 import java.util.Collection;
@@ -138,11 +137,6 @@ class PlaceQueryServiceTest {
         @Override
         public Page<PublicReview> listForPlace(UUID placeId, Pageable pageable) {
             return Page.empty(pageable);
-        }
-
-        @Override
-        public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
-            return List.of();
         }
 
         @Override

@@ -18,9 +18,6 @@ public interface ReviewRepository {
     /** Agregados sin redondear de las opiniones de un lugar. */
     RawReviewStats statsForPlace(UUID placeId);
 
-    /** Todas las opiniones de los lugares indicados. */
-    List<Review> findAllByPlaceIds(Collection<UUID> placeIds);
-
     /** Sumas ponderadas por antigüedad de las opiniones de cada lugar; solo lugares con opiniones. */
     List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays);
 }
