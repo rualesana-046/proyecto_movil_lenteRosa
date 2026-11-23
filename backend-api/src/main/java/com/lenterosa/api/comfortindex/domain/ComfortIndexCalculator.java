@@ -9,7 +9,6 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Cálculo del Índice de Confort (fórmula versión 1, ADR 0003). La fórmula vive solo aquí.
@@ -27,7 +26,7 @@ public final class ComfortIndexCalculator {
 
     public static final int FORMULA_VERSION = 1;
 
-    static final double HALF_LIFE_DAYS = 90.0;
+    public static final double HALF_LIFE_DAYS = 90.0;
     static final double PRIOR_MEAN = 3.0;
     static final double PRIOR_WEIGHT = 3.0;
     static final double DIMENSION_WEIGHT = 0.25;
@@ -47,33 +46,34 @@ public final class ComfortIndexCalculator {
     }
 
     public static ComfortIndex calculate(List<RatingSample> samples, Instant now) {
-        if (samples.isEmpty()) {
+        return calculate(RatingAggregates.from(samples, now));
+    }
+
+    /** Calcula el índice a partir de las sumas ponderadas; es el camino que usa la API. */
+    public static ComfortIndex calculate(RatingAggregates aggregates) {
+        if (aggregates.reviewCount() == 0) {
             return new ComfortIndex(null, ComfortLabel.FEW_OPINIONS, Uncertainty.HIGH, 0, 0, true,
                     DimensionComfort.none(), FORMULA_VERSION);
         }
-        double[] weights = samples.stream().mapToDouble(sample -> recencyWeight(sample.createdAt(), now)).toArray();
-        double effectiveReviews = sum(weights);
-
-        Dimension lighting = dimension(samples, weights, RatingSample::lighting);
-        Dimension womenPresence = dimension(samples, weights, RatingSample::womenPresence);
-        Dimension commercialVisibility = dimension(samples, weights, RatingSample::commercialVisibility);
-        Dimension nightExperience = dimension(samples, weights, RatingSample::nightExperience);
+        double effectiveReviews = aggregates.totalWeight();
+        double lighting = bayesian(aggregates.lightingWeightedSum(), effectiveReviews);
+        double womenPresence = bayesian(aggregates.womenPresenceWeightedSum(), effectiveReviews);
+        double commercialVisibility = bayesian(aggregates.commercialVisibilityWeightedSum(), effectiveReviews);
+        double nightEvidence = aggregates.nightExperienceWeight();
+        double nightExperience = bayesian(aggregates.nightExperienceWeightedSum(), nightEvidence);
 
         // Opción B: la experiencia nocturna pesa según la parte de la evidencia que la califica.
-        double nightWeight = DIMENSION_WEIGHT * nightExperience.evidence() / effectiveReviews;
+        double nightWeight = DIMENSION_WEIGHT * nightEvidence / effectiveReviews;
         double totalWeight = 3 * DIMENSION_WEIGHT + nightWeight;
-        double combined = (DIMENSION_WEIGHT * (lighting.score() + womenPresence.score() + commercialVisibility.score())
-                + nightWeight * nightExperience.score()) / totalWeight;
+        double combined = (DIMENSION_WEIGHT * (lighting + womenPresence + commercialVisibility)
+                + nightWeight * nightExperience) / totalWeight;
 
         int index = roundIndex((combined - 1) * 25);
-        double dispersion = dispersion(samples, weights, effectiveReviews);
-        boolean nightDataMissing = nightExperience.evidence() < NIGHT_EVIDENCE_FROM;
+        double dispersion = dispersion(aggregates);
+        boolean nightDataMissing = nightEvidence < NIGHT_EVIDENCE_FROM;
 
-        DimensionComfort dimensions = new DimensionComfort(
-                lighting.score(),
-                womenPresence.score(),
-                commercialVisibility.score(),
-                nightExperience.evidence() > 0 ? nightExperience.score() : null);
+        DimensionComfort dimensions = new DimensionComfort(lighting, womenPresence, commercialVisibility,
+                nightEvidence > 0 ? nightExperience : null);
         return new ComfortIndex(index, label(index, effectiveReviews, dispersion, nightDataMissing),
                 uncertainty(effectiveReviews), effectiveReviews, dispersion, nightDataMissing, dimensions,
                 FORMULA_VERSION);
@@ -124,48 +124,15 @@ public final class ComfortIndexCalculator {
         return effectiveReviews < LOW_UNCERTAINTY_FROM ? Uncertainty.MEDIUM : Uncertainty.LOW;
     }
 
-    private static Dimension dimension(List<RatingSample> samples, double[] weights,
-            Function<RatingSample, Integer> value) {
-        double weightedSum = PRIOR_WEIGHT * PRIOR_MEAN;
-        double evidence = 0;
-        for (int i = 0; i < samples.size(); i++) {
-            Integer rating = value.apply(samples.get(i));
-            if (rating != null) {
-                weightedSum += weights[i] * rating;
-                evidence += weights[i];
-            }
-        }
-        return new Dimension(weightedSum / (PRIOR_WEIGHT + evidence), evidence);
+    // Promedio bayesiano con valor previo m = 3 de peso k = 3.
+    private static double bayesian(double weightedSum, double evidence) {
+        return (PRIOR_WEIGHT * PRIOR_MEAN + weightedSum) / (PRIOR_WEIGHT + evidence);
     }
 
-    // Desviación estándar ponderada del promedio de cada opinión (solo sus dimensiones presentes).
-    private static double dispersion(List<RatingSample> samples, double[] weights, double totalWeight) {
-        double[] means = samples.stream().mapToDouble(ComfortIndexCalculator::reviewMean).toArray();
-        double weightedMean = 0;
-        for (int i = 0; i < means.length; i++) {
-            weightedMean += weights[i] * means[i];
-        }
-        weightedMean /= totalWeight;
-        double variance = 0;
-        for (int i = 0; i < means.length; i++) {
-            variance += weights[i] * (means[i] - weightedMean) * (means[i] - weightedMean);
-        }
-        return Math.sqrt(variance / totalWeight);
-    }
-
-    private static double reviewMean(RatingSample sample) {
-        int sum = sample.lighting() + sample.womenPresence() + sample.commercialVisibility();
-        return sample.nightExperience() == null ? sum / 3.0 : (sum + sample.nightExperience()) / 4.0;
-    }
-
-    private static double sum(double[] values) {
-        double total = 0;
-        for (double value : values) {
-            total += value;
-        }
-        return total;
-    }
-
-    private record Dimension(double score, double evidence) {
+    // Desviación estándar ponderada del promedio de cada opinión: sqrt(E[x²] − E[x]²).
+    private static double dispersion(RatingAggregates aggregates) {
+        double mean = aggregates.reviewMeanWeightedSum() / aggregates.totalWeight();
+        double variance = aggregates.reviewMeanSquaredWeightedSum() / aggregates.totalWeight() - mean * mean;
+        return Math.sqrt(Math.max(0, variance));
     }
 }
