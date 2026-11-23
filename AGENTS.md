@@ -6,7 +6,7 @@ Fuente única de instrucciones para cualquier agente de desarrollo (Claude Code 
 
 Lente Rosa es una app Android para mujeres que muestra cómo percibe la comunidad un lugar o una ruta, **sin rastreo continuo de ubicación**, más un modo discreto de ayuda rápida. El Índice de Confort refleja percepción comunitaria: nunca garantiza seguridad ni sustituye a los servicios de emergencia.
 
-Proyecto académico de Ingeniería de Software. La responsable es AM; el agente trabaja **supervisado**.
+Proyecto académico de Ingeniería de Software. La responsable es AM; el agente trabaja **de forma autónoma** dentro de los límites de la sección "Permisos".
 
 ## Estructura del monorepo
 
@@ -50,16 +50,26 @@ cd android-app && ./gradlew lint assembleDebug
 
 Las versiones están fijadas en `docs/adr/0001-monorepo-y-versiones.md`. No las cambies sin un ADR nuevo.
 
-## Permisos: qué necesita aprobación explícita de AM
+## Permisos
 
-El agente **no** hace nada de lo siguiente sin un "sí" explícito de AM en el chat, para esa acción concreta:
+El agente trabaja de forma autónoma en: código, pruebas, documentación, commits pequeños, push a ramas de trabajo, apertura de Pull Requests y corrección del CI.
 
-- Crear, mover o borrar archivos fuera de lo que la tarea aprobada pide.
-- `git commit`, `git push`, crear ramas remotas, abrir o fusionar Pull Requests.
-- Despliegues, creación o cambio de recursos en la nube (Google Cloud, Firebase, Neon, GitHub) y cualquier acción que tenga costo.
+El agente se detiene y pide un "sí" explícito de AM en el chat, para esa acción concreta, antes de:
+
+- Fusionar cualquier cambio en `main`.
+- Hacer force push o cambiar el ruleset o la configuración de protección del repositorio.
+- Crear, cambiar o borrar recursos en la nube (Google Cloud, Firebase, Neon) o cualquier cosa con facturación o costo.
+- Crear, mover o usar secretos y credenciales.
+- Borrar datos o aplicar migraciones destructivas.
+- Cambiar el producto o el alcance (requisitos, reglas de producto, funcionalidades).
 - Instalar software en el equipo o cambiar configuración global (shell, git global, variables de entorno).
 
 Una aprobación vale para una acción, no para las siguientes. Nunca afirmes que algo se probó si no se ejecutó.
+
+## Redacción y atribución
+
+- En documentación, comentarios de código, mensajes de commit, títulos y descripciones de Pull Request y nombres de rama solo se nombran funcionalidades (RF-01…, RNF-01…), módulos y decisiones técnicas. No se escriben días, plazos, tiempos ni entregas.
+- Los commits no llevan líneas `Co-Authored-By` y las descripciones de Pull Request no llevan líneas de atribución a herramientas.
 
 ## Secretos
 
@@ -76,10 +86,9 @@ El repositorio es **público**. Ningún secreto entra nunca al historial.
 - Una rama por tarea, por ejemplo `feat/RF-03-indice`.
 - Se trabaja con commits pequeños, uno por paso lógico (migración, dependencia, dominio de un módulo, adaptador, endpoint, documentación). Cada commit lleva sus propias pruebas.
 - **Cada commit compila y pasa las pruebas por sí solo**: antes de cada commit se ejecuta el build de la parte afectada.
-- Mensajes en formato Conventional Commits **con alcance**, en español: `tipo(alcance): descripción`. Tipos: `feat`, `fix`, `docs`, `test`, `build`, `ci`, `refactor`, `chore`. Alcances: el módulo (`places`, `reviews`, `comfortindex`, `insights`, `alerts`, `users`, `shared`), `db`, `api`, `app`, `ci`, `agents`, `tasks`.
-- El diff y las pruebas los revisa AM antes de cada commit o lote de commits aprobado.
-- Integración por Pull Request con CI en verde y aprobación de AM. El merge es **por rebase**, para que `main` conserve todos los commits de la rama.
-- Las tareas se siguen en `docs/tasks.md` con los estados: pendiente, en curso, bloqueada, en revisión, completada.
+- Mensajes en formato Conventional Commits **con alcance**, en español: `tipo(alcance): descripción`. Tipos: `feat`, `fix`, `docs`, `test`, `build`, `ci`, `refactor`, `chore`. Alcances: el módulo (`places`, `reviews`, `comfortindex`, `insights`, `alerts`, `users`, `shared`), `db`, `api`, `app`, `ci`, `agents`, `tasks`, `tech-debt`, `adr`, `requirements`.
+- Integración por Pull Request con CI en verde. Antes de cada merge el agente presenta el informe de 8 puntos y AM aprueba el merge. El merge es **por rebase**, para que `main` conserve todos los commits de la rama.
+- La hoja de ruta está en `docs/tasks.md`, por funcionalidad, con los estados: pendiente, en curso, bloqueada, en revisión, completada.
 
 ## Costos
 
@@ -91,15 +100,15 @@ Costo esperado: USD 0 al mes.
 - El despliegue usa Workload Identity Federation, sin claves permanentes.
 - Ningún proyecto, facturación ni despliegue se crea sin autorización de AM.
 
-## Informe obligatorio al terminar cada tarea
+## Informe obligatorio antes de cada merge
 
-Al terminar cada tarea, el agente entrega un informe en español con estos 8 puntos, en este orden:
+Al terminar cada tarea importante, antes de pedir el merge, el agente presenta un informe en español con estos 8 puntos, en este orden:
 
 1. **Objetivo:** qué se intentó conseguir.
 2. **Cambios:** archivos y funcionalidades creados o modificados.
 3. **Decisiones:** qué se decidió y por qué.
 4. **Pruebas:** comandos ejecutados y resultados reales.
 5. **Riesgos o deuda técnica:** problemas pendientes y su prioridad.
-6. **Git:** diff, propuesta de commit y estado actual, sin ejecutar acciones no autorizadas.
+6. **Git:** rama, commits, resumen del diff, Pull Request y estado del CI.
 7. **Siguiente paso:** una tarea concreta.
 8. **Aprobación requerida:** qué necesitas que AM autorice antes de continuar.
