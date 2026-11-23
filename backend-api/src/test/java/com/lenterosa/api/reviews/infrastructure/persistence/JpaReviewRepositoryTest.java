@@ -11,6 +11,7 @@ import com.lenterosa.api.reviews.domain.DimensionScores;
 import com.lenterosa.api.reviews.domain.Review;
 import com.lenterosa.api.reviews.domain.VisitPeriod;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -135,6 +136,19 @@ class JpaReviewRepositoryTest {
         assertThat(first.getTotalElements()).isEqualTo(3);
         assertThat(first.getContent()).extracting(Review::id).containsExactly(newest.id(), middle.id());
         assertThat(second.getContent()).extracting(Review::id).containsExactly(oldest.id());
+    }
+
+    @Test
+    @DisplayName("Las opiniones de varios lugares se leen en una consulta, solo de esos lugares")
+    void findAllByPlaceIdsOnlyReturnsGivenPlaces() {
+        UUID thirdPlaceId = insertPlace();
+        Review first = save(placeId, DimensionScores.of(1, 1, 1, 1), VisitPeriod.NIGHT, T0);
+        Review second = save(otherPlaceId, DimensionScores.of(4, 4, 3, null), VisitPeriod.DAY, T0.plusSeconds(60));
+        save(thirdPlaceId, DimensionScores.of(5, 5, 5, 5), VisitPeriod.NIGHT, T0);
+
+        List<Review> reviews = repository.findAllByPlaceIds(List.of(placeId, otherPlaceId));
+
+        assertThat(reviews).containsExactlyInAnyOrder(first, second);
     }
 
     private Review save(UUID place, DimensionScores scores, VisitPeriod period, Instant createdAt) {

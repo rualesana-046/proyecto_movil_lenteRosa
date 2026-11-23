@@ -3,6 +3,7 @@ package com.lenterosa.api.reviews.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.lenterosa.api.reviews.PublicReview;
+import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
 import com.lenterosa.api.reviews.domain.Comment;
 import com.lenterosa.api.reviews.domain.DimensionScores;
@@ -11,6 +12,7 @@ import com.lenterosa.api.reviews.domain.VisitPeriod;
 import java.lang.reflect.RecordComponent;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -105,7 +107,46 @@ class ReviewQueryServiceTest {
         assertThat(fields).noneMatch(name -> name.toLowerCase().contains("author"));
     }
 
-    private record FakeRepository(RawReviewStats stats, List<Review> reviews) implements ReviewRepository {
+    @Test
+    @DisplayName("Las calificaciones conservan cada dimensión, la nocturna nula y la fecha")
+    void ratingsMapEveryDimension() {
+        Review day = new Review(UUID.randomUUID(), PLACE_ID, DimensionScores.of(1, 2, 3, null), VisitPeriod.DAY,
+                Comment.ofNullable("Comentario de prueba"), LAST);
+        Review night = new Review(UUID.randomUUID(), PLACE_ID, DimensionScores.of(5, 4, 3, 2), VisitPeriod.NIGHT,
+                null, LAST.minusSeconds(60));
+        ReviewQueryService service = new ReviewQueryService(
+                new FakeRepository(new RawReviewStats(2, LAST, null, null, null, null), List.of(day, night)));
+
+        List<ReviewRatings> ratings = service.ratingsForPlaces(List.of(PLACE_ID));
+
+        assertThat(ratings).containsExactly(
+                new ReviewRatings(PLACE_ID, 1, 2, 3, null, LAST),
+                new ReviewRatings(PLACE_ID, 5, 4, 3, 2, LAST.minusSeconds(60)));
+    }
+
+    @Test
+    @DisplayName("Sin lugares no se consulta la base")
+    void noPlacesMeansNoQuery() {
+        FakeRepository repository = new FakeRepository(new RawReviewStats(0, null, null, null, null, null), List.of());
+
+        assertThat(new ReviewQueryService(repository).ratingsForPlaces(List.of())).isEmpty();
+        assertThat(repository.ratingQueries()).isZero();
+    }
+
+    private static final class FakeRepository implements ReviewRepository {
+
+        private final RawReviewStats stats;
+        private final List<Review> reviews;
+        private int ratingQueries;
+
+        FakeRepository(RawReviewStats stats, List<Review> reviews) {
+            this.stats = stats;
+            this.reviews = reviews;
+        }
+
+        int ratingQueries() {
+            return ratingQueries;
+        }
 
         @Override
         public Page<Review> findByPlaceId(UUID placeId, Pageable pageable) {
@@ -115,6 +156,12 @@ class ReviewQueryServiceTest {
         @Override
         public RawReviewStats statsForPlace(UUID placeId) {
             return stats;
+        }
+
+        @Override
+        public List<Review> findAllByPlaceIds(Collection<UUID> placeIds) {
+            ratingQueries++;
+            return reviews.stream().filter(review -> placeIds.contains(review.placeId())).toList();
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.lenterosa.api.reviews;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,4 +14,7 @@ public interface ReviewQueries {
 
     /** Opiniones de un lugar, de la más reciente a la más antigua, sin datos de la autora. */
     Page<PublicReview> listForPlace(UUID placeId, Pageable pageable);
+
+    /** Calificaciones de todas las opiniones de los lugares indicados, en una sola consulta. */
+    List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds);
 }

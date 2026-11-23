@@ -3,6 +3,8 @@ package com.lenterosa.api.reviews.infrastructure.persistence;
 import com.lenterosa.api.reviews.application.RawReviewStats;
 import com.lenterosa.api.reviews.application.ReviewRepository;
 import com.lenterosa.api.reviews.domain.Review;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +31,11 @@ class JpaReviewRepository implements ReviewRepository {
     public Page<Review> findByPlaceId(UUID placeId, Pageable pageable) {
         Pageable newestFirst = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), NEWEST_FIRST);
         return jpa.findByPlaceId(placeId, newestFirst).map(ReviewEntity::toDomain);
+    }
+
+    @Override
+    public List<Review> findAllByPlaceIds(Collection<UUID> placeIds) {
+        return jpa.findByPlaceIdIn(placeIds).stream().map(ReviewEntity::toDomain).toList();
     }
 
     @Override

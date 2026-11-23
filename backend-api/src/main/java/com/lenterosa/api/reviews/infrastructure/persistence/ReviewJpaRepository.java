@@ -1,6 +1,8 @@
 package com.lenterosa.api.reviews.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 interface ReviewJpaRepository extends JpaRepository<ReviewEntity, UUID> {
 
     Page<ReviewEntity> findByPlaceId(UUID placeId, Pageable pageable);
+
+    List<ReviewEntity> findByPlaceIdIn(Collection<UUID> placeIds);
 
     // avg() ignora los nulos: el promedio nocturno sale solo de las opiniones que lo califican.
     @Query("""
