@@ -20,7 +20,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF | Funcionalidad | Módulos y piezas | Estado | PR |
 |---|---|---|---|---|
 | RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en curso: API completada, con el Índice de Confort; falta la app | #3, #5 |
-| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API | pendiente | — |
+| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | en curso: API completada; falta la app | #9 |
 | RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en curso: API completada; falta la app | #5 |
 | RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso), pantalla Aportar | pendiente | — |
 | RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
