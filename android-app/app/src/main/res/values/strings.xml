@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="es">
     <string name="app_name">Lente Rosa</string>
-    <string name="welcome_subtitle">Base del proyecto lista</string>
+
+    <string name="account_title">Tu cuenta</string>
+    <string name="account_guest_hint">Puedes consultar lugares sin cuenta. Para guardar, opinar y recibir alertas, inicia sesión.</string>
+    <string name="account_tab_sign_in">Iniciar sesión</string>
+    <string name="account_tab_sign_up">Crear cuenta</string>
+    <string name="account_email">Correo</string>
+    <string name="account_password">Contraseña</string>
+    <string name="account_nickname">Apodo (opcional)</string>
+    <string name="account_nickname_hint">Solo lo ves tú. Tus opiniones siempre son anónimas.</string>
+    <string name="account_sign_in">Iniciar sesión</string>
+    <string name="account_sign_up">Crear cuenta</string>
+    <string name="account_or">o</string>
+    <string name="account_google">Continuar con Google</string>
+    <string name="account_hello">Hola, %1$s</string>
+    <string name="account_hello_anonymous">Hola</string>
+    <string name="account_verify_title">Verifica tu correo</string>
+    <string name="account_verify_body">Te enviamos un enlace a %1$s. Para opinar sobre un lugar necesitas verificar tu correo.</string>
+    <string name="account_verify_resend">Reenviar correo</string>
+    <string name="account_verify_check">Ya lo verifiqué</string>
+    <string name="account_save_nickname">Guardar apodo</string>
+    <string name="account_sign_out">Cerrar sesión</string>
+    <string name="account_delete">Eliminar cuenta</string>
+    <string name="account_delete_title">¿Eliminar tu cuenta?</string>
+    <string name="account_delete_body">Se borra tu cuenta. Tus opiniones se conservan, pero quedan anónimas y nadie podrá saber que fueron tuyas. Esta acción no se puede deshacer.</string>
+    <string name="account_delete_reauth_password">Escribe tu contraseña para confirmar que eres tú.</string>
+    <string name="account_delete_reauth_google">Confirma con tu cuenta de Google que eres tú.</string>
+    <string name="account_delete_confirm">Eliminar</string>
+    <string name="account_delete_confirm_google">Confirmar con Google y eliminar</string>
+    <string name="account_cancel">Cancelar</string>
+    <string name="account_busy">Un momento…</string>
+
+    <string name="account_message_verification_sent">Te enviamos un correo de verificación. Revisa también la carpeta de correo no deseado.</string>
+    <string name="account_message_not_verified_yet">Tu correo todavía no aparece verificado. Abre el enlace del correo e inténtalo de nuevo.</string>
+    <string name="account_message_nickname_saved">Apodo guardado.</string>
+    <string name="account_message_account_deleted">Tu cuenta fue eliminada.</string>
+    <string name="account_message_api_unavailable">Iniciaste sesión, pero no pudimos conectar con el servidor de Lente Rosa. Lo intentaremos de nuevo.</string>
+    <string name="account_message_invalid_credentials">El correo o la contraseña no son correctos.</string>
+    <string name="account_message_email_in_use">Ya existe una cuenta con ese correo. Inicia sesión.</string>
+    <string name="account_message_weak_password">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="account_message_invalid_email">Revisa el correo: no parece válido.</string>
+    <string name="account_message_network">Sin conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="account_message_no_google_account">No hay ninguna cuenta de Google en este teléfono. Agrega una en Ajustes o usa tu correo.</string>
+    <string name="account_message_server">El servidor no pudo completar la acción. Inténtalo más tarde.</string>
+    <string name="account_message_unknown">Algo salió mal. Inténtalo de nuevo.</string>
 </resources>
