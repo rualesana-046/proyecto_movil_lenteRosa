@@ -22,3 +22,28 @@ INSERT INTO reviews (id, place_id, lighting, women_presence, commercial_visibili
     ('01929f00-0000-7000-8000-000000000105', '01929f00-0000-7000-8000-000000000007', 1, 2, 1, 1,    'NIGHT', 'Comentario ficticio: tramo oscuro.',             now() - interval '10 days'),
     ('01929f00-0000-7000-8000-000000000106', '01929f00-0000-7000-8000-000000000006', 3, 4, 4, 4,    'NIGHT', NULL,                                              now() - interval '2 days')
 ON CONFLICT (id) DO NOTHING;
+
+-- Más opiniones ficticias para que, recién cargado el seed, haya un ejemplo de cada etiqueta del
+-- Índice de Confort (ADR 0003): Parque → Opiniones mixtas, Parada → Cómodo, Tienda → Muy cómodo,
+-- Centro de Salud → Cómodo por falta de datos nocturnos, Calle → Poco cómodo, Bar → Pocas opiniones.
+-- Con el paso del tiempo los pesos bajan y las etiquetas pueden cambiar.
+INSERT INTO reviews (id, place_id, lighting, women_presence, commercial_visibility, night_experience, visit_period, comment, created_at) VALUES
+    ('01929f00-0000-7000-8000-000000000107', '01929f00-0000-7000-8000-000000000001', 5, 5, 5, 5,    'NIGHT', 'Comentario ficticio: me sentí cómoda.',          now() - interval '5 days'),
+    ('01929f00-0000-7000-8000-000000000108', '01929f00-0000-7000-8000-000000000001', 1, 1, 1, 1,    'NIGHT', 'Comentario ficticio: no volvería de noche.',     now() - interval '8 days'),
+    ('01929f00-0000-7000-8000-000000000109', '01929f00-0000-7000-8000-000000000002', 4, 4, 4, 4,    'NIGHT', NULL,                                              now() - interval '2 days'),
+    ('01929f00-0000-7000-8000-000000000110', '01929f00-0000-7000-8000-000000000002', 4, 4, 4, 4,    'NIGHT', NULL,                                              now() - interval '5 days'),
+    ('01929f00-0000-7000-8000-000000000111', '01929f00-0000-7000-8000-000000000002', 4, 4, 4, 4,    'NIGHT', NULL,                                              now() - interval '11 days'),
+    ('01929f00-0000-7000-8000-000000000112', '01929f00-0000-7000-8000-000000000003', 5, 5, 5, 5,    'NIGHT', 'Comentario ficticio: buena iluminación de noche.', now() - interval '4 days'),
+    ('01929f00-0000-7000-8000-000000000113', '01929f00-0000-7000-8000-000000000003', 5, 4, 5, 5,    'NIGHT', NULL,                                              now() - interval '6 days'),
+    ('01929f00-0000-7000-8000-000000000114', '01929f00-0000-7000-8000-000000000003', 4, 5, 5, 4,    'NIGHT', NULL,                                              now() - interval '9 days'),
+    ('01929f00-0000-7000-8000-000000000115', '01929f00-0000-7000-8000-000000000003', 5, 5, 4, NULL, 'DAY',   NULL,                                              now() - interval '12 days'),
+    ('01929f00-0000-7000-8000-000000000116', '01929f00-0000-7000-8000-000000000005', 5, 5, 5, NULL, 'DAY',   'Comentario ficticio: mucha gente de día.',       now() - interval '1 day'),
+    ('01929f00-0000-7000-8000-000000000117', '01929f00-0000-7000-8000-000000000005', 5, 5, 5, NULL, 'DAY',   NULL,                                              now() - interval '3 days'),
+    ('01929f00-0000-7000-8000-000000000118', '01929f00-0000-7000-8000-000000000005', 5, 5, 4, NULL, 'DAY',   NULL,                                              now() - interval '5 days'),
+    ('01929f00-0000-7000-8000-000000000119', '01929f00-0000-7000-8000-000000000005', 5, 5, 5, NULL, 'DAY',   NULL,                                              now() - interval '8 days'),
+    ('01929f00-0000-7000-8000-000000000120', '01929f00-0000-7000-8000-000000000005', 5, 4, 5, NULL, 'DAY',   NULL,                                              now() - interval '13 days'),
+    ('01929f00-0000-7000-8000-000000000121', '01929f00-0000-7000-8000-000000000007', 1, 1, 2, 1,    'NIGHT', NULL,                                              now() - interval '4 days'),
+    ('01929f00-0000-7000-8000-000000000122', '01929f00-0000-7000-8000-000000000007', 2, 1, 1, 1,    'NIGHT', 'Comentario ficticio: casi sin luz.',             now() - interval '6 days'),
+    ('01929f00-0000-7000-8000-000000000123', '01929f00-0000-7000-8000-000000000007', 1, 2, 1, 2,    'NIGHT', NULL,                                              now() - interval '15 days'),
+    ('01929f00-0000-7000-8000-000000000124', '01929f00-0000-7000-8000-000000000007', 2, 1, 2, 1,    'NIGHT', NULL,                                              now() - interval '2 days')
+ON CONFLICT (id) DO NOTHING;
