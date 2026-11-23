@@ -3,7 +3,7 @@
 CREATE TABLE reviews (
     id                     uuid         PRIMARY KEY,
     place_id               uuid         NOT NULL REFERENCES places (id),
-    -- UID de Firebase. Nulo hasta el día 4 y al anonimizar una cuenta eliminada; nunca se expone en la API.
+    -- UID de Firebase. Nulo en opiniones sin autora registrada y al anonimizar una cuenta eliminada; nunca se expone en la API.
     author_id              varchar(128),
     lighting               smallint     NOT NULL,
     women_presence         smallint     NOT NULL,
