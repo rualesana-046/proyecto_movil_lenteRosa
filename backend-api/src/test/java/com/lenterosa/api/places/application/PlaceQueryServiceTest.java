@@ -13,6 +13,7 @@ import com.lenterosa.api.places.domain.GeoPoint;
 import com.lenterosa.api.places.domain.Place;
 import com.lenterosa.api.places.domain.PlaceCategory;
 import com.lenterosa.api.reviews.DimensionAverages;
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
 import com.lenterosa.api.reviews.ReviewRatings;
@@ -141,6 +142,11 @@ class PlaceQueryServiceTest {
 
         @Override
         public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
+            return List.of();
+        }
+
+        @Override
+        public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
             return List.of();
         }
     }

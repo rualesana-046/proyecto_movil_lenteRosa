@@ -1,6 +1,8 @@
 package com.lenterosa.api.reviews.application;
 
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.domain.Review;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -18,4 +20,7 @@ public interface ReviewRepository {
 
     /** Todas las opiniones de los lugares indicados. */
     List<Review> findAllByPlaceIds(Collection<UUID> placeIds);
+
+    /** Sumas ponderadas por antigüedad de las opiniones de cada lugar; solo lugares con opiniones. */
+    List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays);
 }

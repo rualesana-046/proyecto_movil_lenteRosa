@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 import com.lenterosa.api.PostgisTestcontainersConfiguration;
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.application.RawReviewStats;
 import com.lenterosa.api.reviews.application.ReviewRepository;
 import com.lenterosa.api.reviews.domain.Comment;
 import com.lenterosa.api.reviews.domain.DimensionScores;
 import com.lenterosa.api.reviews.domain.Review;
 import com.lenterosa.api.reviews.domain.VisitPeriod;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +151,42 @@ class JpaReviewRepositoryTest {
         List<Review> reviews = repository.findAllByPlaceIds(List.of(placeId, otherPlaceId));
 
         assertThat(reviews).containsExactlyInAnyOrder(first, second);
+    }
+
+    @Test
+    @DisplayName("Las sumas ponderadas se calculan en la base: peso 1 hoy y 0,5 a los 90 días")
+    void decayedSumsAreComputedInTheDatabase() {
+        Instant now = T0.plus(Duration.ofDays(90));
+        save(placeId, DimensionScores.of(4, 5, 3, null), VisitPeriod.DAY, now);
+        save(placeId, DimensionScores.of(2, 2, 2, 2), VisitPeriod.NIGHT, T0);
+        save(otherPlaceId, DimensionScores.of(5, 5, 5, 5), VisitPeriod.NIGHT, now);
+
+        List<DecayedRatingSums> sums = repository.decayedRatingSums(List.of(placeId), now, 90);
+
+        assertThat(sums).hasSize(1);
+        DecayedRatingSums place = sums.getFirst();
+        assertThat(place.placeId()).isEqualTo(placeId);
+        assertThat(place.reviewCount()).isEqualTo(2);
+        assertThat(place.totalWeight()).isCloseTo(1.5, within(1e-9));
+        assertThat(place.lightingWeightedSum()).isCloseTo(4 + 0.5 * 2, within(1e-9));
+        assertThat(place.womenPresenceWeightedSum()).isCloseTo(5 + 0.5 * 2, within(1e-9));
+        assertThat(place.commercialVisibilityWeightedSum()).isCloseTo(3 + 0.5 * 2, within(1e-9));
+        assertThat(place.nightExperienceWeight()).isCloseTo(0.5, within(1e-9));
+        assertThat(place.nightExperienceWeightedSum()).isCloseTo(1.0, within(1e-9));
+        // Promedios por opinión: 4 (día, tres dimensiones) y 2 (noche, cuatro dimensiones).
+        assertThat(place.reviewMeanWeightedSum()).isCloseTo(4 + 0.5 * 2, within(1e-9));
+        assertThat(place.reviewMeanSquaredWeightedSum()).isCloseTo(16 + 0.5 * 4, within(1e-9));
+    }
+
+    @Test
+    @DisplayName("Las sumas tratan una fecha futura como edad 0 y omiten lugares sin opiniones")
+    void decayedSumsHandleFutureDatesAndEmptyPlaces() {
+        save(placeId, DimensionScores.of(3, 3, 3, 3), VisitPeriod.NIGHT, T0.plus(Duration.ofDays(1)));
+
+        List<DecayedRatingSums> sums = repository.decayedRatingSums(List.of(placeId, otherPlaceId), T0, 90);
+
+        assertThat(sums).extracting(DecayedRatingSums::placeId).containsExactly(placeId);
+        assertThat(sums.getFirst().totalWeight()).isCloseTo(1.0, within(1e-9));
     }
 
     private Review save(UUID place, DimensionScores scores, VisitPeriod period, Instant createdAt) {

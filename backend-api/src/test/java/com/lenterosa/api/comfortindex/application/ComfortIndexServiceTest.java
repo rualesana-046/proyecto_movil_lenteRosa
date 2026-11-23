@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.lenterosa.api.comfortindex.ComfortIndex;
 import com.lenterosa.api.comfortindex.ComfortLabel;
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
 import com.lenterosa.api.reviews.ReviewRatings;
@@ -94,6 +95,11 @@ class ComfortIndexServiceTest {
         @Override
         public Page<PublicReview> listForPlace(UUID placeId, Pageable pageable) {
             return Page.empty(pageable);
+        }
+
+        @Override
+        public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
+            return List.of();
         }
     }
 }

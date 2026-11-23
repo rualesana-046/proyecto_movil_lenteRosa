@@ -1,7 +1,9 @@
 package com.lenterosa.api.reviews.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
@@ -133,6 +135,17 @@ class ReviewQueryServiceTest {
         assertThat(repository.ratingQueries()).isZero();
     }
 
+    @Test
+    @DisplayName("Las sumas ponderadas: sin lugares no se consulta y la vida media debe ser positiva")
+    void decayedSumsValidateInput() {
+        FakeRepository repository = new FakeRepository(new RawReviewStats(0, null, null, null, null, null), List.of());
+        ReviewQueryService service = new ReviewQueryService(repository);
+
+        assertThat(service.decayedRatingSums(List.of(), LAST, 90)).isEmpty();
+        assertThat(repository.ratingQueries()).isZero();
+        assertThatIllegalArgumentException().isThrownBy(() -> service.decayedRatingSums(List.of(PLACE_ID), LAST, 0));
+    }
+
     private static final class FakeRepository implements ReviewRepository {
 
         private final RawReviewStats stats;
@@ -156,6 +169,12 @@ class ReviewQueryServiceTest {
         @Override
         public RawReviewStats statsForPlace(UUID placeId) {
             return stats;
+        }
+
+        @Override
+        public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
+            ratingQueries++;
+            return List.of();
         }
 
         @Override
