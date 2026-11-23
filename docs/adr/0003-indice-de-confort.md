@@ -49,14 +49,14 @@ Se calculan sobre el **índice ya redondeado**, para que coincidan con lo que se
 ### Arquitectura
 
 - `comfortindex.domain.ComfortIndexCalculator` es puro (sin Spring) y es el único lugar con la fórmula.
-- `ComfortIndexService` (capa `application`) obtiene las calificaciones con la API de solo lectura `ReviewQueries.ratingsForPlaces`, que no incluye comentarios ni autoría, y calcula con un `Clock` inyectado.
+- `ComfortIndexService` (capa `application`) obtiene las sumas ponderadas por antigüedad de cada lugar con la API de solo lectura de `reviews`, que no incluye comentarios ni autoría, y calcula con un `Clock` inyectado. Las sumas se calculan en la base (ADR 0004).
 - Los tipos del resultado (`ComfortIndex`, `ComfortLabel`, `Uncertainty`, `DimensionComfort`) están en el paquete base del módulo porque son su API pública; el dominio los produce directamente.
 - Dependencias: `places` → `comfortindex` → `reviews`, y `places` → `reviews`, sin ciclos.
 - El índice se calcula al leer: refleja la última opinión y el paso del tiempo, sin procesos programados.
 
 ## Consecuencias
 
-- Cada lectura del detalle o de una página de búsqueda recorre las opiniones de esos lugares. Es suficiente con el volumen actual; si crece, se puede guardar un resumen que se actualice con cada nueva opinión.
+- Cada lectura del detalle o de una página de búsqueda agrega en la base las opiniones de esos lugares, con una fila por lugar (ADR 0004).
 - El mismo lugar cambia de índice con el paso del tiempo aunque no lleguen opiniones; por eso las pruebas usan un reloj fijo.
 - Cambiar parámetros o reglas exige una nueva versión de fórmula (`formulaVersion`) y un ADR que la documente.
 - Los ejemplos del diseño están en `ComfortIndexCalculatorTest` como pruebas de regresión.
