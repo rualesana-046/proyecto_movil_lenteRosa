@@ -1,5 +1,6 @@
 package com.lenterosa.api.places.infrastructure;
 
+import com.lenterosa.api.comfortindex.ComfortIndexQueries;
 import com.lenterosa.api.places.application.PlaceQueryService;
 import com.lenterosa.api.places.application.PlaceRepository;
 import com.lenterosa.api.reviews.ReviewQueries;
@@ -11,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
 class PlacesConfiguration {
 
     @Bean
-    PlaceQueryService placeQueryService(PlaceRepository placeRepository, ReviewQueries reviewQueries) {
-        return new PlaceQueryService(placeRepository, reviewQueries);
+    PlaceQueryService placeQueryService(PlaceRepository placeRepository, ReviewQueries reviewQueries,
+            ComfortIndexQueries comfortIndexQueries) {
+        return new PlaceQueryService(placeRepository, reviewQueries, comfortIndexQueries);
     }
 }

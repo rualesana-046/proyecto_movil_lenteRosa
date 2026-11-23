@@ -4,6 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.lenterosa.api.comfortindex.ComfortIndex;
+import com.lenterosa.api.comfortindex.ComfortIndexQueries;
+import com.lenterosa.api.comfortindex.ComfortLabel;
+import com.lenterosa.api.comfortindex.DimensionComfort;
+import com.lenterosa.api.comfortindex.Uncertainty;
 import com.lenterosa.api.places.domain.GeoPoint;
 import com.lenterosa.api.places.domain.Place;
 import com.lenterosa.api.places.domain.PlaceCategory;
@@ -14,6 +19,7 @@ import com.lenterosa.api.reviews.ReviewRatings;
 import com.lenterosa.api.reviews.ReviewStats;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,16 +39,21 @@ class PlaceQueryServiceTest {
     private static final ReviewStats PARK_STATS = new ReviewStats(2, Instant.parse("2026-10-18T22:10:00Z"),
             new DimensionAverages(3.0, 3.5, 2.5, 2.0));
 
+    private static final ComfortIndex PARK_COMFORT = new ComfortIndex(62, ComfortLabel.COMFORTABLE, Uncertainty.MEDIUM,
+            3.5, 0.4, false, new DimensionComfort(3.5, 3.4, 3.4, 3.6), 1);
+
     private final PlaceQueryService service = new PlaceQueryService(
-            new FakePlaces(Map.of(PARK.id(), PARK)), new FakeReviews(Map.of(PARK.id(), PARK_STATS)));
+            new FakePlaces(Map.of(PARK.id(), PARK)), new FakeReviews(Map.of(PARK.id(), PARK_STATS)),
+            new FakeComfort(Map.of(PARK.id(), PARK_COMFORT)));
 
     @Test
-    @DisplayName("El detalle combina el lugar con el resumen de sus opiniones")
-    void detailCombinesPlaceAndStats() {
+    @DisplayName("El detalle combina el lugar con el resumen de sus opiniones y su Índice de Confort")
+    void detailCombinesPlaceStatsAndComfort() {
         PlaceDetail detail = service.getDetail(PARK.id());
 
         assertThat(detail.place()).isEqualTo(PARK);
         assertThat(detail.reviewStats()).isEqualTo(PARK_STATS);
+        assertThat(detail.comfort()).isEqualTo(PARK_COMFORT);
     }
 
     @Test
@@ -120,6 +131,24 @@ class PlaceQueryServiceTest {
         @Override
         public List<ReviewRatings> ratingsForPlaces(Collection<UUID> placeIds) {
             return List.of();
+        }
+    }
+
+    private record FakeComfort(Map<UUID, ComfortIndex> comfort) implements ComfortIndexQueries {
+
+        private static final ComfortIndex NONE = new ComfortIndex(null, ComfortLabel.FEW_OPINIONS, Uncertainty.HIGH,
+                0, 0, true, DimensionComfort.none(), 1);
+
+        @Override
+        public ComfortIndex forPlace(UUID placeId) {
+            return comfort.getOrDefault(placeId, NONE);
+        }
+
+        @Override
+        public Map<UUID, ComfortIndex> forPlaces(Collection<UUID> placeIds) {
+            Map<UUID, ComfortIndex> result = new LinkedHashMap<>();
+            placeIds.forEach(id -> result.put(id, forPlace(id)));
+            return result;
         }
     }
 }

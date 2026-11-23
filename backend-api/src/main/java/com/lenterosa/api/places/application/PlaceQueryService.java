@@ -1,5 +1,6 @@
 package com.lenterosa.api.places.application;
 
+import com.lenterosa.api.comfortindex.ComfortIndexQueries;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
 import java.util.UUID;
@@ -8,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * Casos de uso de consulta como invitada: buscar lugares cercanos, ver el detalle de un lugar
- * y listar sus opiniones anónimas.
+ * con su Índice de Confort y listar sus opiniones anónimas.
  *
  * <p>Sin anotaciones de Spring: la capa de infraestructura lo registra como bean.
  */
@@ -18,10 +19,12 @@ public class PlaceQueryService {
 
     private final PlaceRepository places;
     private final ReviewQueries reviews;
+    private final ComfortIndexQueries comfort;
 
-    public PlaceQueryService(PlaceRepository places, ReviewQueries reviews) {
+    public PlaceQueryService(PlaceRepository places, ReviewQueries reviews, ComfortIndexQueries comfort) {
         this.places = places;
         this.reviews = reviews;
+        this.comfort = comfort;
     }
 
     public Page<NearbyPlace> searchNearby(NearbySearch search, Pageable pageable) {
@@ -31,7 +34,7 @@ public class PlaceQueryService {
 
     public PlaceDetail getDetail(UUID placeId) {
         return places.findById(placeId)
-                .map(place -> new PlaceDetail(place, reviews.statsForPlace(placeId)))
+                .map(place -> new PlaceDetail(place, reviews.statsForPlace(placeId), comfort.forPlace(placeId)))
                 .orElseThrow(() -> new PlaceNotFoundException(placeId));
     }
 
