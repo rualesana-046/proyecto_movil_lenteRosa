@@ -7,6 +7,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,21 +21,36 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 // Pruebas de punta a punta por HTTP real, sin sesión. Los datos se borran después de cada prueba.
+// El reloj es fijo para que el Índice de Confort no dependa del día en que corren las pruebas.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(PostgisTestcontainersConfiguration.class)
+@Import({PostgisTestcontainersConfiguration.class, PlaceApiIntegrationTest.FixedClock.class})
 @ExtendWith(OutputCaptureExtension.class)
 class PlaceApiIntegrationTest {
 
     // Centro de las búsquedas: un punto de Pasto. 0.009° ≈ 1000 m.
     private static final String CENTER = "lat=1.2136&lng=-77.2811";
+    private static final Instant NOW = Instant.parse("2026-11-01T12:00:00Z");
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class FixedClock {
+
+        @Bean
+        @Primary
+        Clock fixedClock() {
+            return Clock.fixed(NOW, ZoneOffset.UTC);
+        }
+    }
 
     @Value("${local.server.port}")
     int port;
@@ -103,6 +122,49 @@ class PlaceApiIntegrationTest {
         assertThat(body.get("lastReviewAt").isNull()).isTrue();
         assertThat(body.get("averages").get("lighting").isNull()).isTrue();
         assertThat(body.get("averages").get("nightExperience").isNull()).isTrue();
+        JsonNode comfort = body.get("comfort");
+        assertThat(comfort.get("index").isNull()).isTrue();
+        assertThat(comfort.get("label").asString()).isEqualTo("FEW_OPINIONS");
+        assertThat(comfort.get("uncertainty").asString()).isEqualTo("HIGH");
+    }
+
+    @Test
+    @DisplayName("El detalle trae el Índice de Confort con etiqueta, incertidumbre y dimensiones")
+    void detailIncludesComfortIndex() throws Exception {
+        UUID place = insertPlace("Lugar muy valorado", "PARK", 1.2136, -77.2811);
+        for (int i = 0; i < 5; i++) {
+            insertReviewDaysAgo(place, 5, 5, 5, 5, "NIGHT", 1);
+        }
+
+        JsonNode comfort = json.readTree(get("/api/v1/places/" + place).body()).get("comfort");
+
+        assertThat(comfort.get("index").asInt()).isEqualTo(81);
+        assertThat(comfort.get("label").asString()).isEqualTo("VERY_COMFORTABLE");
+        assertThat(comfort.get("uncertainty").asString()).isEqualTo("MEDIUM");
+        assertThat(comfort.get("effectiveReviews").asDouble()).isEqualTo(4.96);
+        assertThat(comfort.get("dispersion").asDouble()).isZero();
+        assertThat(comfort.get("nightDataMissing").asBoolean()).isFalse();
+        assertThat(comfort.get("dimensions").get("lighting").asDouble()).isEqualTo(4.2);
+        assertThat(comfort.get("dimensions").get("nightExperience").asDouble()).isEqualTo(4.2);
+        assertThat(comfort.get("formulaVersion").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Sin datos nocturnos el detalle marca nightDataMissing y no pasa de COMFORTABLE")
+    void detailCapsLabelWithoutNightData() throws Exception {
+        UUID place = insertPlace("Lugar visitado de día", "HEALTH", 1.2136, -77.2811);
+        insertReviewDaysAgo(place, 5, 5, 5, null, "DAY", 1);
+        insertReviewDaysAgo(place, 5, 5, 5, null, "DAY", 3);
+        insertReviewDaysAgo(place, 5, 5, 4, null, "DAY", 5);
+        insertReviewDaysAgo(place, 5, 5, 5, null, "DAY", 8);
+        insertReviewDaysAgo(place, 5, 4, 5, null, "DAY", 13);
+
+        JsonNode comfort = json.readTree(get("/api/v1/places/" + place).body()).get("comfort");
+
+        assertThat(comfort.get("index").asInt()).isEqualTo(79);
+        assertThat(comfort.get("label").asString()).isEqualTo("COMFORTABLE");
+        assertThat(comfort.get("nightDataMissing").asBoolean()).isTrue();
+        assertThat(comfort.get("dimensions").get("nightExperience").isNull()).isTrue();
     }
 
     @Test
@@ -178,6 +240,12 @@ class PlaceApiIntegrationTest {
                 VALUES (?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography)
                 """, id, name, category, longitude, latitude);
         return id;
+    }
+
+    private void insertReviewDaysAgo(UUID placeId, int lighting, int womenPresence, int commercialVisibility,
+            Integer nightExperience, String period, int daysAgo) {
+        insertReview(placeId, lighting, womenPresence, commercialVisibility, nightExperience, period,
+                NOW.minus(Duration.ofDays(daysAgo)).toString());
     }
 
     private void insertReview(UUID placeId, int lighting, int womenPresence, int commercialVisibility,
