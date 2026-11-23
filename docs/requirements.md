@@ -2,7 +2,7 @@
 
 App Android que muestra cómo percibe la comunidad un lugar o una ruta, sin rastreo continuo, más un modo discreto de ayuda rápida. El índice refleja percepción comunitaria: **nunca garantiza seguridad ni sustituye a los servicios de emergencia**.
 
-El alcance obligatorio no se recorta. Si el plazo se acorta, se usa el margen de los días 13 y 14.
+El alcance obligatorio no se recorta. El estado de cada requisito está en [`tasks.md`](tasks.md).
 
 ## Requisitos funcionales
 
