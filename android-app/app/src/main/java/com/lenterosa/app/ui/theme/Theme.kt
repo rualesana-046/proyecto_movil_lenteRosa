@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 // Tema mínimo de Material 3 en claro y oscuro. La paleta, la tipografía Plus Jakarta Sans
-// y el contraste AA se definen en el sistema de diseño del día 6.
+// y el contraste AA se definen en el sistema de diseño (RNF-02, RNF-03).
 @Composable
 fun LenteRosaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
