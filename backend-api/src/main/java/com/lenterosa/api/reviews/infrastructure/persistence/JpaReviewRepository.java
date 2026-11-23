@@ -91,6 +91,14 @@ class JpaReviewRepository implements ReviewRepository {
     }
 
     @Override
+    @Transactional
+    public int clearAuthor(String authorId) {
+        return jdbc.sql("UPDATE reviews SET author_id = NULL WHERE author_id = :authorId")
+                .param("authorId", authorId)
+                .update();
+    }
+
+    @Override
     public RawReviewStats statsForPlace(UUID placeId) {
         ReviewJpaRepository.StatsRow row = jpa.statsForPlace(placeId);
         return new RawReviewStats(

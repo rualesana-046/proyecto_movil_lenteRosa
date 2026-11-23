@@ -18,6 +18,9 @@ public interface ReviewRepository {
     /** Agregados sin redondear de las opiniones de un lugar. */
     RawReviewStats statsForPlace(UUID placeId);
 
+    /** Quita la autora de todas sus opiniones ({@code author_id = NULL}); devuelve cuántas cambiaron. */
+    int clearAuthor(String authorId);
+
     /** Sumas ponderadas por antigüedad de las opiniones de cada lugar; solo lugares con opiniones. */
     List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays);
 }

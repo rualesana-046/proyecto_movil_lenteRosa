@@ -176,6 +176,30 @@ class JpaReviewRepositoryTest {
         assertThat(sums.getFirst().totalWeight()).isCloseTo(1.0, within(1e-9));
     }
 
+    @Test
+    @DisplayName("Anonimizar a una autora quita su autoría sin borrar sus opiniones ni tocar las de otras")
+    void clearAuthorAnonymizesOnlyThatAuthor() {
+        Review mine = save(placeId, DimensionScores.of(3, 3, 3, 3), VisitPeriod.NIGHT, T0);
+        Review alsoMine = save(otherPlaceId, DimensionScores.of(4, 4, 4, null), VisitPeriod.DAY, T0);
+        Review someoneElse = save(placeId, DimensionScores.of(2, 2, 2, 2), VisitPeriod.NIGHT, T0);
+        setAuthor(mine, "uid-a");
+        setAuthor(alsoMine, "uid-a");
+        setAuthor(someoneElse, "uid-b");
+
+        int anonymized = repository.clearAuthor("uid-a");
+
+        assertThat(anonymized).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM reviews WHERE id IN (?, ?)", Integer.class,
+                mine.id(), alsoMine.id())).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM reviews WHERE author_id = 'uid-a'", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT author_id FROM reviews WHERE id = ?", String.class, someoneElse.id()))
+                .isEqualTo("uid-b");
+    }
+
+    private void setAuthor(Review review, String authorId) {
+        jdbc.update("UPDATE reviews SET author_id = ? WHERE id = ?", authorId, review.id());
+    }
+
     private Review save(UUID place, DimensionScores scores, VisitPeriod period, Instant createdAt) {
         Review review = new Review(UUID.randomUUID(), place, scores, period, Comment.ofNullable("Comentario de prueba"),
                 createdAt);

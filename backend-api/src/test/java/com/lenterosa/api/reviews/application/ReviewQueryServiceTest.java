@@ -140,6 +140,11 @@ class ReviewQueryServiceTest {
         }
 
         @Override
+        public int clearAuthor(String authorId) {
+            return 0;
+        }
+
+        @Override
         public RawReviewStats statsForPlace(UUID placeId) {
             return stats;
         }
