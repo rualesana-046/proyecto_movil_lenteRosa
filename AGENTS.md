@@ -54,14 +54,25 @@ Las versiones están fijadas en `docs/adr/0001-monorepo-y-versiones.md`. No las 
 
 El agente trabaja de forma autónoma en: código, pruebas, documentación, commits pequeños, push a ramas de trabajo, apertura de Pull Requests y corrección del CI.
 
+### Merge
+
+- **Merge autónomo** con CI en verde para Pull Requests de documentación, deuda técnica, actualización de versiones, pruebas y refactor. Después del merge, el agente avisa a AM con un resumen corto.
+- **Pull Requests de funcionalidades (RF):** el agente presenta el informe de 8 puntos y espera la aprobación de AM antes del merge.
+
+### Decisiones técnicas y de diseño
+
+- El agente elige su recomendación, la registra en un ADR y la destaca en el informe.
+- Pregunta antes solo si la decisión afecta a la seguridad o la privacidad de las usuarias.
+- Los cambios de producto o de alcance (requisitos, reglas de producto, funcionalidades) siempre se consultan con AM.
+
+### Siempre requieren aprobación explícita de AM
+
 El agente se detiene y pide un "sí" explícito de AM en el chat, para esa acción concreta, antes de:
 
-- Fusionar cualquier cambio en `main`.
-- Hacer force push o cambiar el ruleset o la configuración de protección del repositorio.
 - Crear, cambiar o borrar recursos en la nube (Google Cloud, Firebase, Neon) o cualquier cosa con facturación o costo.
 - Crear, mover o usar secretos y credenciales.
 - Borrar datos o aplicar migraciones destructivas.
-- Cambiar el producto o el alcance (requisitos, reglas de producto, funcionalidades).
+- Hacer force push o cambiar el ruleset o la configuración de protección del repositorio.
 - Instalar software en el equipo o cambiar configuración global (shell, git global, variables de entorno).
 
 Una aprobación vale para una acción, no para las siguientes. Nunca afirmes que algo se probó si no se ejecutó.
@@ -87,7 +98,7 @@ El repositorio es **público**. Ningún secreto entra nunca al historial.
 - Se trabaja con commits pequeños, uno por paso lógico (migración, dependencia, dominio de un módulo, adaptador, endpoint, documentación). Cada commit lleva sus propias pruebas.
 - **Cada commit compila y pasa las pruebas por sí solo**: antes de cada commit se ejecuta el build de la parte afectada.
 - Mensajes en formato Conventional Commits **con alcance**, en español: `tipo(alcance): descripción`. Tipos: `feat`, `fix`, `docs`, `test`, `build`, `ci`, `refactor`, `chore`. Alcances: el módulo (`places`, `reviews`, `comfortindex`, `insights`, `alerts`, `users`, `shared`), `db`, `api`, `app`, `ci`, `agents`, `tasks`, `tech-debt`, `adr`, `requirements`.
-- Integración por Pull Request con CI en verde. Antes de cada merge el agente presenta el informe de 8 puntos y AM aprueba el merge. El merge es **por rebase**, para que `main` conserve todos los commits de la rama.
+- Integración por Pull Request con CI en verde, según las reglas de merge de la sección "Permisos". El merge es **por rebase**, para que `main` conserve todos los commits de la rama.
 - La hoja de ruta está en `docs/tasks.md`, por funcionalidad, con los estados: pendiente, en curso, bloqueada, en revisión, completada.
 
 ## Costos
@@ -100,9 +111,9 @@ Costo esperado: USD 0 al mes.
 - El despliegue usa Workload Identity Federation, sin claves permanentes.
 - Ningún proyecto, facturación ni despliegue se crea sin autorización de AM.
 
-## Informe obligatorio antes de cada merge
+## Informe de 8 puntos
 
-Al terminar cada tarea importante, antes de pedir el merge, el agente presenta un informe en español con estos 8 puntos, en este orden:
+Antes de pedir el merge de un Pull Request de funcionalidad (RF), el agente presenta un informe en español con estos 8 puntos, en este orden. Para los Pull Requests de merge autónomo basta un resumen corto después del merge.
 
 1. **Objetivo:** qué se intentó conseguir.
 2. **Cambios:** archivos y funcionalidades creados o modificados.
