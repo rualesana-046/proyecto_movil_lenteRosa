@@ -17,6 +17,11 @@ spring:
 server:
   port: ${PORT:8080}
 
+lente-rosa:
+  firebase:
+    # Identificador público del proyecto de Firebase (no es un secreto). Sin él, la API rechaza todos los tokens.
+    project-id: ${FIREBASE_PROJECT_ID:}
+
 management:
   endpoints:
     web:

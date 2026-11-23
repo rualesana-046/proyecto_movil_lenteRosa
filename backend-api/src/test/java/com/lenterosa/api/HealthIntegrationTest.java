@@ -56,9 +56,13 @@ class HealthIntegrationTest {
     }
 
     @Test
-    @DisplayName("/actuator/health no está expuesto")
+    @DisplayName("/actuator/health no está expuesto: sin sesión responde 401 y nunca el estado")
     void actuatorHealthIsNotExposed() throws Exception {
-        assertThat(get("/actuator/health").statusCode()).isEqualTo(404);
+        // Toda ruta fuera de la consulta pública exige sesión, así que una ruta inexistente responde 401.
+        HttpResponse<String> response = get("/actuator/health");
+
+        assertThat(response.statusCode()).isEqualTo(401);
+        assertThat(response.body()).doesNotContain("UP");
     }
 
     @Test
