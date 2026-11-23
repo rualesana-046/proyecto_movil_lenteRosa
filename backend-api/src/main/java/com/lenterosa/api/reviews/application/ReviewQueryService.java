@@ -1,5 +1,6 @@
 package com.lenterosa.api.reviews.application;
 
+import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.DimensionAverages;
 import com.lenterosa.api.reviews.PublicReview;
 import com.lenterosa.api.reviews.ReviewQueries;
@@ -10,6 +11,7 @@ import com.lenterosa.api.reviews.domain.Rating;
 import com.lenterosa.api.reviews.domain.Review;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +56,17 @@ public class ReviewQueryService implements ReviewQueries {
             return List.of();
         }
         return reviews.findAllByPlaceIds(placeIds).stream().map(ReviewQueryService::toRatings).toList();
+    }
+
+    @Override
+    public List<DecayedRatingSums> decayedRatingSums(Collection<UUID> placeIds, Instant now, double halfLifeDays) {
+        if (placeIds.isEmpty()) {
+            return List.of();
+        }
+        if (!(halfLifeDays > 0)) {
+            throw new IllegalArgumentException("La vida media debe ser positiva: " + halfLifeDays);
+        }
+        return reviews.decayedRatingSums(placeIds, now, halfLifeDays);
     }
 
     private static ReviewRatings toRatings(Review review) {
