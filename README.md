@@ -122,8 +122,8 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
 | Método | Ruta | Qué devuelve |
 |---|---|---|
-| GET | `/api/v1/places?lat=&lng=&radiusMeters=&q=&page=&size=` | Lugares cercanos, del más cercano al más lejano, con `distanceMeters`. Radio de 1 a 5000 m (por defecto 1000); `size` de 1 a 50 (por defecto 20) |
-| GET | `/api/v1/places/{id}` | Detalle con `reviewCount`, `lastReviewAt` y `averages` por dimensión (nulos si no hay datos) |
+| GET | `/api/v1/places?lat=&lng=&radiusMeters=&q=&page=&size=` | Lugares cercanos, del más cercano al más lejano, con `distanceMeters`, `comfortIndex` y `comfortLabel`. Radio de 1 a 5000 m (por defecto 1000); `size` de 1 a 50 (por defecto 20) |
+| GET | `/api/v1/places/{id}` | Detalle con `reviewCount`, `lastReviewAt`, `averages` por dimensión (nulos si no hay datos) y el bloque `comfort` del Índice de Confort |
 | GET | `/api/v1/places/{id}/reviews?page=&size=` | Opiniones anónimas, de la más reciente a la más antigua |
 | GET | `/api/v1/health` | Salud de la API |
 
@@ -132,6 +132,8 @@ Ejemplo con los datos ficticios:
 ```bash
 curl "http://localhost:8080/api/v1/places?lat=1.2136&lng=-77.2811&radiusMeters=1000"
 ```
+
+El Índice de Confort (0–100) se calcula al leer, con todas las opiniones vigentes: promedio bayesiano por dimensión con peso por antigüedad, etiqueta e incertidumbre. La fórmula está en [`docs/adr/0003-indice-de-confort.md`](docs/adr/0003-indice-de-confort.md). Refleja percepción comunitaria: nunca garantiza seguridad.
 
 Los errores siguen el formato RFC 9457 (`application/problem+json`): 400 con un mensaje claro si un parámetro está fuera de los límites, y 404 si el lugar no existe. Las coordenadas de la búsqueda no se guardan ni se escriben en los logs.
 
