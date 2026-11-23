@@ -1,19 +1,19 @@
 # ADR 0002 — Modelo de datos y persistencia de lugares y opiniones
 
 - **Estado:** aceptado
-- **Fecha:** 2026-10-21
+- **PR:** #3
 - **Decide:** AM
 
 ## Contexto
 
-El día 2 implementa la consulta como invitada (RF-01): buscar lugares cercanos, ver el detalle de un lugar y leer sus opiniones anónimas. Según el prototipo de la Fase 1, cada opinión califica cuatro dimensiones de 1 a 5, indica si la visita fue de día o de noche y puede llevar un comentario. Las búsquedas son geográficas y la API es un monolito modular con capas `domain`, `application` e `infrastructure` (ADR 0001).
+La consulta como invitada (RF-01) permite buscar lugares cercanos, ver el detalle de un lugar y leer sus opiniones anónimas. Según el prototipo de la app, cada opinión califica cuatro dimensiones de 1 a 5, indica si la visita fue de día o de noche y puede llevar un comentario. Las búsquedas son geográficas y la API es un monolito modular con capas `domain`, `application` e `infrastructure` (ADR 0001).
 
 ## Decisión
 
 ### Modelo de datos
 
 1. **`places`** (V2): `id uuid`, `name`, `category` (lista cerrada: `TRANSPORT`, `PARK`, `COMMERCE`, `EDUCATION`, `HEALTH`, `NIGHTLIFE`, `STREET`, `OTHER`), `address`, `location geography(Point, 4326)` con índice GiST y `created_at`.
-2. **`reviews`** (V3): `lighting`, `women_presence` y `commercial_visibility` obligatorias de 1 a 5; `night_experience` de 1 a 5, **obligatoria si `visit_period = 'NIGHT'` y opcional si es `'DAY'`** ("No fui de noche"); `comment` opcional de hasta 500 caracteres; `author_id` nulo hasta el día 4 y nunca expuesto.
+2. **`reviews`** (V3): `lighting`, `women_presence` y `commercial_visibility` obligatorias de 1 a 5; `night_experience` de 1 a 5, **obligatoria si `visit_period = 'NIGHT'` y opcional si es `'DAY'`** ("No fui de noche"); `comment` opcional de hasta 500 caracteres; `author_id` nulo mientras no exista autenticación (RF-02) y nunca expuesto.
 3. Las reglas se validan dos veces: en el dominio y con restricciones `CHECK` en la base, para que ni una escritura directa deje datos inválidos.
 4. Identificadores **UUID v7** (RFC 9562) generados por la API (`shared.UuidV7`, con `SecureRandom`), ordenables por tiempo.
 5. Los promedios por dimensión se redondean a un decimal y son **nulos cuando no hay datos**; el promedio nocturno ignora las opiniones que no lo califican.
@@ -45,5 +45,5 @@ El día 2 implementa la consulta como invitada (RF-01): buscar lugares cercanos,
 
 - La base protege las reglas aunque se escriba directo en ella, a costa de repetir las reglas en dos lugares; las pruebas de `MigrationConstraintsTest` y del dominio las mantienen alineadas.
 - Las consultas geográficas dependen de PostGIS: las pruebas usan PostGIS real con Testcontainers (un único contenedor compartido).
-- Al llegar la autenticación (día 4) queda pendiente exigir `author_id` en las opiniones nuevas y anonimizar las de cuentas eliminadas (TD-05).
-- El Índice de Confort (día 3) se agregará al detalle sin cambiar el modelo de opiniones.
+- Con la autenticación (RF-02, RF-04) queda pendiente exigir `author_id` en las opiniones nuevas y anonimizar las de cuentas eliminadas (TD-05).
+- El Índice de Confort (RF-03) se agregará al detalle sin cambiar el modelo de opiniones.

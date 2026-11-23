@@ -1,19 +1,19 @@
 # ADR 0001 — Monorepo y versiones base
 
 - **Estado:** aceptado
-- **Fecha:** 2026-10-18
+- **PR:** #1
 - **Decide:** AM
 
 ## Contexto
 
-Lente Rosa tiene tres piezas desplegables (app Android, API y base de datos) y un plazo de 14 días hábiles. Hace falta una base que compile y se pruebe desde el día 1, con versiones compatibles entre sí y verificadas en fuentes oficiales, y un repositorio público que el docente pueda revisar.
+Lente Rosa tiene tres piezas desplegables (app Android, API y base de datos). Hace falta una base que compile y se pruebe desde el primer commit, con versiones compatibles entre sí y verificadas en fuentes oficiales, en un repositorio público.
 
 ## Decisión
 
 1. **Monorepo** con `android-app/`, `backend-api/`, `docs/`, `infra/` y `.github/workflows/`. Cada parte tiene su propio build de Gradle (con Kotlin DSL) y su propio wrapper, sin un build raíz común.
 2. **API como monolito modular** (`places`, `reviews`, `comfortindex`, `insights`, `alerts`, `users`) con capas `domain`, `application` e `infrastructure`. Los límites entre módulos se verifican con Spring Modulith y las capas con ArchUnit, ambos solo en pruebas.
 3. **Salud de la API** con Spring Boot Actuator, exponiendo solo `health` y sin detalles públicos, con alias `/api/v1/health`.
-4. **Versiones fijadas** (verificadas el 2026-10-18):
+4. **Versiones fijadas**, verificadas en las fuentes oficiales listadas al final:
 
 | Componente | Versión | Motivo |
 |---|---|---|
@@ -30,7 +30,7 @@ Lente Rosa tiene tres piezas desplegables (app Android, API y base de datos) y u
 | Spring Modulith | 2.1.1 (solo pruebas) | Compilado contra Spring Boot 4.1.1 |
 | ArchUnit | 1.5.1 (solo pruebas) | Reglas de capas dentro de cada módulo |
 
-5. **Hilt y KSP no entran el día 1.** Se incorporan el día 6, cuando haya dependencias reales que inyectar.
+5. **Hilt y KSP no entran en la base.** Se incorporan con la primera pantalla que tenga dependencias reales que inyectar (RF-09, RF-11).
 
 ## Consecuencias
 
