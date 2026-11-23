@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Detalle de un lugar. Los promedios son nulos cuando no hay datos; la app muestra "Sin datos".
- * El Índice de Confort se agrega el día 3.
+ * El Índice de Confort se agrega con RF-03.
  */
 record PlaceDetailResponse(UUID id, String name, String category, String address, LocationResponse location,
         long reviewCount, Instant lastReviewAt, DimensionAverages averages) {
