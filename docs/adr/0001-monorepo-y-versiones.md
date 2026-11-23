@@ -36,7 +36,7 @@ Lente Rosa tiene tres piezas desplegables (app Android, API y base de datos). Ha
 
 - La imagen `postgis/postgis` solo se publica para amd64. En Macs con Apple Silicon corre emulada: arranca más lento, pero funciona. En el CI (ubuntu amd64) corre nativa.
 - No se usan AGP 9.4.x ni Gradle 9.8.x, que son más nuevos, hasta que Kotlin los certifique (TD-01 en `docs/tech-debt.md`).
-- Cambiar cualquiera de estas versiones requiere un ADR nuevo.
+- Cambiar cualquiera de estas versiones requiere un ADR nuevo. Las versiones vigentes de Spring Boot, Spring Modulith y lifecycle están en el ADR 0005.
 
 ## Fuentes
 
