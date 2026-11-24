@@ -80,6 +80,26 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun `al abrir la app con sesión se reintenta el registro en la API sin avisos`() {
+        auth.signInBlocking()
+
+        val reopened = AccountViewModel(auth, AccountRepository(auth, api) { hasInternet })
+
+        assertEquals(listOf("Bearer token-1"), api.registered)
+        assertNull(reopened.state.value.message)
+    }
+
+    @Test
+    fun `un error inesperado muestra un mensaje genérico y no cierra la app`() {
+        auth.unexpectedError = true
+
+        viewModel.signIn("ana@ejemplo.com", "secreta")
+
+        assertEquals(AccountMessage.UNKNOWN, viewModel.state.value.message)
+        assertFalse(viewModel.state.value.busy)
+    }
+
+    @Test
     fun `cancelar el selector de Google no muestra error`() {
         viewModel.reportFailure(AuthFailure.CANCELLED)
 
@@ -147,6 +167,7 @@ class AccountViewModelTest {
         var failNext: AuthFailure? = null
         var lastEmail: String? = null
         var verificationsSent = 0
+        var unexpectedError = false
         private val current = MutableStateFlow<Session?>(null)
         override val session: StateFlow<Session?> = current
 
@@ -154,7 +175,12 @@ class AccountViewModelTest {
             failNext?.let { failNext = null; throw AuthException(it) }
         }
 
+        fun signInBlocking() {
+            current.value = Session("uid-1", "ana@ejemplo.com", emailVerified = true, nickname = null, usesPassword = true, usesGoogle = false)
+        }
+
         override suspend fun signIn(email: String, password: String) {
+            if (unexpectedError) throw IllegalStateException("error inesperado")
             maybeFail()
             lastEmail = email
             current.value = Session("uid-1", email, emailVerified = true, nickname = null, usesPassword = true, usesGoogle = false)

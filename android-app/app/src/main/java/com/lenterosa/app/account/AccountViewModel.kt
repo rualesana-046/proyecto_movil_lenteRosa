@@ -51,6 +51,20 @@ class AccountViewModel @Inject constructor(
     val state: StateFlow<AccountUiState> = combine(auth.session, busy, message, ::AccountUiState)
         .stateIn(viewModelScope, SharingStarted.Eagerly, AccountUiState(auth.session.value, busy = false, message = null))
 
+    init {
+        // Si ya hay sesión al abrir la app, se reintenta el registro en la API (es idempotente) sin avisos:
+        // cubre el caso de una cuenta creada cuando la API no respondía.
+        if (auth.session.value != null) {
+            viewModelScope.launch {
+                try {
+                    accounts.registerInApi()
+                } catch (e: AuthException) {
+                    // Se reintentará en la próxima apertura o inicio de sesión.
+                }
+            }
+        }
+    }
+
     fun signIn(email: String, password: String) = perform {
         auth.signIn(email.trim(), password)
         registerInApi()
@@ -120,6 +134,10 @@ class AccountViewModel @Inject constructor(
                 block()
             } catch (e: AuthException) {
                 message.value = e.failure.toMessage()
+            } catch (e: Exception) {
+                // Nunca se cierra la app por un error inesperado: se muestra un mensaje genérico.
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                message.value = AccountMessage.UNKNOWN
             } finally {
                 busy.value = false
             }
