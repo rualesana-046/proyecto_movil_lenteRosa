@@ -19,10 +19,10 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 
 | RF | Funcionalidad | Módulos y piezas | Estado | PR |
 |---|---|---|---|---|
-| RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en curso: API completada, con el Índice de Confort; falta la app | #3, #5 |
+| RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en revisión: API completada; app con lista y ficha del lugar (sin mapa ni ubicación propia) | #3, #5, #11 |
 | RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | completada: API y app (registro, verificación, apodo, eliminar cuenta). Inicio con Google sin probar en un dispositivo | #9 |
-| RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en curso: API completada; falta la app | #5 |
-| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | en revisión: API; falta la app | #10 |
+| RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en revisión: API completada; app con etiqueta, ícono, índice e incertidumbre (ADR 0008) | #5, #11 |
+| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | en revisión: API completada; pantalla Aportar en la app | #10, #11 |
 | RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
 | RF-07 | Alertas de cambio | `alerts`: detección de cambios y envío con FCM a quien guardó el lugar | pendiente | — |
@@ -36,8 +36,8 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RNF | Requisito | Cómo se cubre | Estado |
 |---|---|---|---|
 | RNF-01 | Privacidad | Ubicación solo bajo demanda; las coordenadas de búsqueda no se guardan ni se registran (prueba en RF-01) | en curso |
-| RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | pendiente |
-| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | pendiente |
+| RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | en curso: contraste AA verificado por pruebas y escala de confort con texto e ícono (ADR 0008) |
+| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en curso: tokens, tipografía y escala de confort (ADR 0008); faltan liquid glass y animaciones |
 | RNF-04 | Seguridad | Sin secretos en el repositorio; clave de IA solo en la API; tokens validados en la API | en curso |
 | RNF-05 | Costo | Cloud Run con topes y alerta de presupuesto | pendiente |
 | RNF-06 | Calidad | Regresión completa en CI, APK firmado, instalación limpia y README completo | en curso |
