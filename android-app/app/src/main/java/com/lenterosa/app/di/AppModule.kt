@@ -3,12 +3,13 @@ package com.lenterosa.app.di
 import com.google.firebase.auth.FirebaseAuth
 import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.account.AccountApi
-import com.lenterosa.app.account.AndroidNetworkStatus
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.CredentialManagerGoogleIdTokenProvider
 import com.lenterosa.app.account.FirebaseAuthGateway
 import com.lenterosa.app.account.GoogleIdTokenProvider
-import com.lenterosa.app.account.NetworkStatus
+import com.lenterosa.app.network.AndroidNetworkStatus
+import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.places.PlacesApi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -53,6 +54,10 @@ object AppModule {
     @Provides
     @Singleton
     fun accountApi(retrofit: Retrofit): AccountApi = retrofit.create(AccountApi::class.java)
+
+    @Provides
+    @Singleton
+    fun placesApi(retrofit: Retrofit): PlacesApi = retrofit.create(PlacesApi::class.java)
 }
 
 @Module

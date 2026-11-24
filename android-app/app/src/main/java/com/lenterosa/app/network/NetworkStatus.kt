@@ -1,4 +1,4 @@
-package com.lenterosa.app.account
+package com.lenterosa.app.network
 
 import android.content.Context
 import android.net.ConnectivityManager

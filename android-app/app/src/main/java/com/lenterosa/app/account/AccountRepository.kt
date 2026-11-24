@@ -2,6 +2,7 @@ package com.lenterosa.app.account
 
 import android.util.Log
 import com.lenterosa.app.BuildConfig
+import com.lenterosa.app.network.NetworkStatus
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
