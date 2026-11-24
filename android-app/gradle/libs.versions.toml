@@ -22,6 +22,8 @@ haze = "2.1.0"
 navigation = "2.10.2"
 datastore = "1.3.0"
 robolectric = "4.17"
+# Android de Robolectric para la API 35 de las pruebas; Gradle lo descarga y queda en caché (ADR 0011).
+robolectricAndroidAll = "15-robolectric-13954326-i7"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -57,6 +59,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 haze-glass = { module = "dev.chrisbanes.haze:haze-glass", version.ref = "haze" }
 maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version.ref = "robolectricAndroidAll" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
