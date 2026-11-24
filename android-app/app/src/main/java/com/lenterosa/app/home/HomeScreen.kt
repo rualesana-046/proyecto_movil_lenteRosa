@@ -9,13 +9,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.R
@@ -37,16 +45,20 @@ import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.PlaceSummary
 import com.lenterosa.app.places.PlacesContent
 import com.lenterosa.app.places.PlacesViewModel
+import com.lenterosa.app.saved.SavedContent
+import com.lenterosa.app.saved.SavedViewModel
+import com.lenterosa.app.saved.saveResultMessage
 import com.lenterosa.app.ui.glass.GlassNavigationBar
 import com.lenterosa.app.ui.glass.GlassTopBar
 import com.lenterosa.app.ui.glass.currentMotion
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
-enum class HomeTab { MAP, LIST }
+enum class HomeTab { MAP, LIST, SAVED }
 
 object HomeTags {
     const val BOTTOM_BAR = "home_bottom_bar"
+    const val ALERTS_BADGE = "home_alerts_badge"
 }
 
 /**
@@ -61,13 +73,15 @@ fun HomeScaffold(
     onTabSelected: (HomeTab) -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenAccount: () -> Unit,
+    unreadAlerts: Int = 0,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     content: @Composable (padding: PaddingValues, tab: HomeTab, backdrop: Modifier) -> Unit,
 ) {
     val hazeState = rememberHazeState()
     val motion = currentMotion()
     // La lista se desenfoca detrás de las barras. El mapa no: su vista nativa no se puede capturar,
     // así que sobre él las barras usan el tinte sin desenfoque.
-    val barBackdrop = hazeState.takeIf { tab == HomeTab.LIST }
+    val barBackdrop = hazeState.takeIf { tab != HomeTab.MAP }
     Scaffold(
         topBar = {
             GlassTopBar(
@@ -101,9 +115,24 @@ fun HomeScaffold(
                         icon = { Icon(painterResource(R.drawable.ic_list), contentDescription = null) },
                         label = { Text(stringResource(R.string.home_tab_list)) },
                     )
+                    // Aviso sutil: solo un punto en la pestaña, sin sonido ni vibración. El lector de
+                    // pantalla lo anuncia con texto.
+                    val alertsDescription = pluralStringResource(R.plurals.saved_unread_alerts, unreadAlerts, unreadAlerts)
+                    NavigationBarItem(
+                        selected = tab == HomeTab.SAVED,
+                        onClick = { onTabSelected(HomeTab.SAVED) },
+                        icon = {
+                            BadgedBox(badge = { if (unreadAlerts > 0) Badge(Modifier.testTag(HomeTags.ALERTS_BADGE)) }) {
+                                Icon(painterResource(R.drawable.ic_bookmark), contentDescription = null)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.home_tab_saved)) },
+                        modifier = if (unreadAlerts > 0) Modifier.semantics { stateDescription = alertsDescription } else Modifier,
+                    )
                 }
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         AnimatedContent(
             targetState = tab,
@@ -111,18 +140,19 @@ fun HomeScaffold(
             modifier = Modifier.fillMaxSize(),
             label = "home-tab",
         ) { shownTab ->
-            content(padding, shownTab, if (shownTab == HomeTab.LIST) Modifier.hazeSource(hazeState) else Modifier)
+            content(padding, shownTab, if (shownTab != HomeTab.MAP) Modifier.hazeSource(hazeState) else Modifier)
         }
     }
 }
 
-/** Inicio con el mapa (RF-09) y la lista (RF-01). */
+/** Inicio con el mapa (RF-09), la lista (RF-01) y los guardados con sus avisos (RF-05, RF-07). */
 @Composable
 fun HomeScreen(
     tab: HomeTab,
     onTabSelected: (HomeTab) -> Unit,
     mapViewModel: MapViewModel,
     placesViewModel: PlacesViewModel,
+    savedViewModel: SavedViewModel,
     onOpenPlace: (String) -> Unit,
     onContribute: (id: String, name: String) -> Unit,
     onOpenAccount: () -> Unit,
@@ -137,8 +167,21 @@ fun HomeScreen(
     }
     // Se lee una vez al entrar: así, al volver de la ficha, el mapa sigue en la zona que se miraba.
     val initialCamera = remember { mapViewModel.currentCamera() }
+    val savedIds by mapViewModel.savedIds.collectAsStateWithLifecycle()
+    val unreadAlerts by mapViewModel.unreadAlerts.collectAsStateWithLifecycle()
+    val saveMessage by mapViewModel.saveMessage.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    // Al entrar o al cambiar de sesión se actualizan los guardados y los avisos sin leer.
+    LaunchedEffect(session?.uid) { mapViewModel.refreshSaved() }
+    val messageText = saveMessage?.let { saveResultMessage(it) }
+    LaunchedEffect(messageText) {
+        if (messageText != null) {
+            snackbar.showSnackbar(messageText)
+            mapViewModel.dismissSaveMessage()
+        }
+    }
 
-    HomeScaffold(tab, onTabSelected, onOpenPrivacy, onOpenAccount) { padding, shownTab, backdrop ->
+    HomeScaffold(tab, onTabSelected, onOpenPrivacy, onOpenAccount, unreadAlerts, snackbar) { padding, shownTab, backdrop ->
         when (shownTab) {
             HomeTab.MAP -> MapTab(
                 contentPadding = padding,
@@ -156,6 +199,8 @@ fun HomeScreen(
                     if (session?.emailVerified == true) onContribute(place.id, place.name) else onOpenPlace(place.id)
                 },
                 onCloseCard = { mapViewModel.select(null) },
+                savedIds = savedIds,
+                onToggleSaved = { place -> mapViewModel.toggleSaved(place.id) },
                 map = { modifier ->
                     PlacesMap(
                         places = (state.places as? LoadState.Ready)?.value.orEmpty(),
@@ -169,6 +214,7 @@ fun HomeScreen(
                 },
             )
             HomeTab.LIST -> PlacesContent(placesViewModel, onOpenPlace, modifier = backdrop, contentPadding = padding)
+            HomeTab.SAVED -> SavedContent(savedViewModel, onOpenPlace, onOpenAccount, modifier = backdrop, contentPadding = padding)
         }
     }
 

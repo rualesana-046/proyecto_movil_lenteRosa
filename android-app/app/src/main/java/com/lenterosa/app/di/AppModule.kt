@@ -19,6 +19,7 @@ import com.lenterosa.app.network.NetworkStatus
 import com.lenterosa.app.onboarding.DataStoreOnboardingStore
 import com.lenterosa.app.onboarding.OnboardingStore
 import com.lenterosa.app.places.PlacesApi
+import com.lenterosa.app.saved.SavedApi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -68,6 +69,10 @@ object AppModule {
     @Provides
     @Singleton
     fun placesApi(retrofit: Retrofit): PlacesApi = retrofit.create(PlacesApi::class.java)
+
+    @Provides
+    @Singleton
+    fun savedApi(retrofit: Retrofit): SavedApi = retrofit.create(SavedApi::class.java)
 
     /** Ajustes locales de la app (por ahora, si la bienvenida ya se completó). Nunca datos personales. */
     @Provides

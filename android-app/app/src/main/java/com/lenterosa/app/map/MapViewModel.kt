@@ -10,6 +10,8 @@ import com.lenterosa.app.places.Loaded
 import com.lenterosa.app.places.PilotArea
 import com.lenterosa.app.places.PlaceSummary
 import com.lenterosa.app.places.PlacesRepository
+import com.lenterosa.app.saved.SaveResult
+import com.lenterosa.app.saved.SavedPlacesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.math.asin
@@ -52,12 +54,35 @@ class MapViewModel @Inject constructor(
     private val repository: PlacesRepository,
     private val location: DeviceLocation,
     auth: AuthGateway,
+    private val saved: SavedPlacesStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapUiState())
     val state: StateFlow<MapUiState> = _state.asStateFlow()
 
     val session: StateFlow<Session?> = auth.session
+
+    /** Lugares guardados y avisos sin leer, compartidos con la ficha y la pestaña Guardados. */
+    val savedIds: StateFlow<Set<String>> = saved.savedIds
+    val unreadAlerts: StateFlow<Int> = saved.unreadCount
+
+    private val _saveMessage = MutableStateFlow<SaveResult?>(null)
+    val saveMessage: StateFlow<SaveResult?> = _saveMessage.asStateFlow()
+
+    fun refreshSaved() {
+        viewModelScope.launch { saved.refreshQuietly() }
+    }
+
+    fun toggleSaved(placeId: String) {
+        viewModelScope.launch {
+            val result = saved.setSaved(placeId, saved = placeId !in saved.savedIds.value)
+            if (result != SaveResult.DONE) _saveMessage.value = result
+        }
+    }
+
+    fun dismissSaveMessage() {
+        _saveMessage.value = null
+    }
 
     private var lastSearchCenter: GeoPoint = PilotArea.CENTER
     private var visibleCenter: GeoPoint = PilotArea.CENTER
