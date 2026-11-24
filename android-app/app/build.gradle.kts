@@ -23,6 +23,8 @@ android {
         // (por ejemplo Stadia Maps) con propiedades de Gradle, sin tocar el código; la atribución
         // y el nombre del proveedor cambian junto con el estilo.
         buildConfigField("String", "MAP_STYLE_URL", quoted(mapProperty("mapStyleUrl", "https://tiles.openfreemap.org/styles/liberty")))
+        // Estilo oscuro para el tema oscuro: un mapa claro de noche deslumbra y llama la atención en la calle.
+        buildConfigField("String", "MAP_STYLE_URL_DARK", quoted(mapProperty("mapStyleUrlDark", "https://tiles.openfreemap.org/styles/dark")))
         buildConfigField("String", "MAP_PROVIDER_NAME", quoted(mapProperty("mapProviderName", "OpenFreeMap")))
         buildConfigField(
             "String",
