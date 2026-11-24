@@ -130,7 +130,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
    docker compose --env-file .env -f infra/docker-compose.yml down
    ```
 
-### Endpoints públicos (sin iniciar sesión)
+### Endpoints
 
 | Método | Ruta | Qué devuelve |
 |---|---|---|
@@ -139,6 +139,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 | GET | `/api/v1/places/{id}/reviews?page=&size=` | Opiniones anónimas, de la más reciente a la más antigua |
 | GET | `/api/v1/health` | Salud de la API |
 | PUT / GET / DELETE | `/api/v1/me` | Registrar, consultar o eliminar la propia cuenta. **Requiere** `Authorization: Bearer <ID token de Firebase>`; al eliminar, las opiniones quedan anónimas |
+| POST | `/api/v1/places/{id}/reviews` | Aportar una opinión (RF-04). **Requiere** sesión y correo verificado. Límite: una por lugar y periodo cada 7 días y 20 en 24 horas (429 con `Retry-After`). Los comentarios no pueden tener teléfonos, correos ni enlaces |
 
 Ejemplo con los datos ficticios:
 
@@ -148,7 +149,7 @@ curl "http://localhost:8080/api/v1/places?lat=1.2136&lng=-77.2811&radiusMeters=1
 
 El Índice de Confort (0–100) se calcula al leer, con todas las opiniones vigentes: promedio bayesiano por dimensión con peso por antigüedad, etiqueta e incertidumbre. La fórmula está en [`docs/adr/0003-indice-de-confort.md`](docs/adr/0003-indice-de-confort.md). Refleja percepción comunitaria: nunca garantiza seguridad.
 
-Los errores siguen el formato RFC 9457 (`application/problem+json`): 400 con un mensaje claro si un parámetro está fuera de los límites, y 404 si el lugar no existe. Las coordenadas de la búsqueda no se guardan ni se escriben en los logs.
+Los errores siguen el formato RFC 9457 (`application/problem+json`): 400 con un mensaje claro si un parámetro o una opinión no son válidos, 401 sin sesión, 403 sin correo verificado, 404 si el lugar no existe y 429 al superar el límite de opiniones. Las coordenadas de la búsqueda no se guardan ni se escriben en los logs.
 
 ### App en el emulador
 
