@@ -12,7 +12,7 @@ RF-09 pide un mapa con MapLibre y mosaicos de OpenStreetMap, sin usar el servido
 
 ### Proveedor
 
-1. **OpenFreeMap** con el estilo `liberty`: sin clave, sin registro, sin límite de vistas y con uso comercial permitido. Sin clave no hay ningún secreto dentro del APK, que es público.
+1. **OpenFreeMap** con el estilo `liberty` (y `dark` con el tema oscuro, ADR 0010): sin clave, sin registro, sin límite de vistas y con uso comercial permitido. Sin clave no hay ningún secreto dentro del APK, que es público.
 2. **Stadia Maps como alternativa configurable.** La URL del estilo, el nombre del proveedor y el texto y enlace de la atribución están en `BuildConfig` y se cambian con propiedades de Gradle (`lenteRosa.mapStyleUrl`, `lenteRosa.mapProviderName`, `lenteRosa.mapAttribution`, `lenteRosa.mapAttributionUrl`), sin tocar el código. Stadia exige cuenta y clave, que es un secreto: activarla requiere la aprobación de AM.
 3. **Riesgo:** OpenFreeMap no ofrece SLA y puede cambiar sin aviso. La alternativa anterior es la mitigación.
 4. **MapLibre Android 13.7.1** (versión estable). Las versiones con sufijo `-globe` son experimentales y no se usan.
