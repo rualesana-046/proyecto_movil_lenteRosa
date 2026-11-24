@@ -6,6 +6,7 @@ import com.lenterosa.api.places.application.PlaceQueryService;
 import com.lenterosa.api.places.application.PlaceRepository;
 import com.lenterosa.api.reviews.ReviewQueries;
 import com.lenterosa.api.reviews.ReviewSubmissions;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,7 +21,9 @@ class PlacesConfiguration {
     }
 
     @Bean
-    ContributeReviewService contributeReviewService(PlaceRepository placeRepository, ReviewSubmissions reviewSubmissions) {
-        return new ContributeReviewService(placeRepository, reviewSubmissions);
+    ContributeReviewService contributeReviewService(PlaceRepository placeRepository, ReviewSubmissions reviewSubmissions,
+            ComfortIndexQueries comfortIndexQueries, ApplicationEventPublisher eventPublisher) {
+        // Las opiniones publicadas se anuncian como eventos de Spring; las alertas (RF-07) los escuchan.
+        return new ContributeReviewService(placeRepository, reviewSubmissions, comfortIndexQueries, eventPublisher::publishEvent);
     }
 }
