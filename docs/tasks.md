@@ -29,7 +29,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF-08 | Modo discreto | App: atajo del ícono, tile de ajustes rápidos, tres acciones con estados reales | pendiente | — |
 | RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | completada | #12 |
 | RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
-| RF-11 | Onboarding | App: tres pasos al primer uso | pendiente | — |
+| RF-11 | Onboarding | App: tres pasos al primer uso, con Navigation Compose (ADR 0011) | en revisión | #15 |
 
 ## Requisitos no funcionales
 
@@ -37,7 +37,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 |---|---|---|---|
 | RNF-01 | Privacidad | Ubicación solo bajo demanda; las coordenadas de búsqueda no se guardan ni se registran (prueba en RF-01); ubicación aproximada solo con "Cerca de mí" y aviso de privacidad en la app (ADR 0009) | en curso |
 | RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | en curso: contraste AA verificado por pruebas (también sobre vidrio, ADR 0010), escala de confort con texto e ícono (ADR 0008) y "Quitar animaciones" respetado |
-| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en revisión: tokens, tipografía, escala de confort (ADR 0008), liquid glass y animaciones (ADR 0010); las transiciones entre pantallas llegan con TD-09 |
+| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en revisión: tokens, tipografía, escala de confort (ADR 0008), liquid glass, animaciones y mapa oscuro (ADR 0010), transiciones entre pantallas (ADR 0011) |
 | RNF-04 | Seguridad | Sin secretos en el repositorio; clave de IA solo en la API; tokens validados en la API | en curso |
 | RNF-05 | Costo | Cloud Run con topes y alerta de presupuesto | pendiente |
 | RNF-06 | Calidad | Regresión completa en CI, APK firmado, instalación limpia y README completo | en curso |
@@ -66,6 +66,7 @@ Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca
 - [ ] **Aportar con una cuenta verificada** (RF-04) contra la API desplegada: publicar, límite de 7 días, rechazo de teléfonos y dirección aceptada.
 - [ ] **Revisión visual del mapa** (RF-09): legibilidad de marcadores y atribución al sol, gestos y rendimiento en un teléfono de gama media.
 - [ ] **Liquid glass con desenfoque real** (RNF-03): en el emulador Haze no dibujó el vidrio y solo se vio el tinte. Revisar en el teléfono el desenfoque detrás de las barras, la legibilidad y la fluidez al desplazarse.
+- [ ] **Fluidez general** (RNF-03, RF-11): transiciones entre pantallas, bienvenida y desplazamiento en un teléfono de gama media. En el emulador, sobrecargado justo después de instalar, la app tardó en responder una vez (ANR) y luego funcionó con normalidad.
 
 ## Alcance del piloto: Pasto
 
