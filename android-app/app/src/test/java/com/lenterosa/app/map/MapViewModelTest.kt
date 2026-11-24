@@ -44,6 +44,7 @@ class MapViewModelTest {
         repository(api),
         { locationRequests++; locationResult },
         FakeSessionGateway(),
+        com.lenterosa.app.saved.store(),
     )
 
     @Test

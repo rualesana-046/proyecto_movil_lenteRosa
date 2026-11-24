@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -108,6 +109,27 @@ class MapAttributionLayoutTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `con avisos sin leer la pestaña Guardados muestra un punto y lo anuncia con texto`() {
+        compose.setContent {
+            LenteRosaTheme {
+                HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}, unreadAlerts = 2) { _, _, _ -> }
+            }
+        }
+        compose.onNodeWithTag(HomeTags.ALERTS_BADGE, useUnmergedTree = true).assertExists()
+        compose.onNode(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "2 avisos nuevos")).assertExists()
+    }
+
+    @Test
+    fun `sin avisos no hay punto en la pestaña Guardados`() {
+        compose.setContent {
+            LenteRosaTheme {
+                HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}, unreadAlerts = 0) { _, _, _ -> }
+            }
+        }
+        compose.onNodeWithTag(HomeTags.ALERTS_BADGE, useUnmergedTree = true).assertDoesNotExist()
     }
 
     private fun assertAttributionVisibleAndUncovered() {

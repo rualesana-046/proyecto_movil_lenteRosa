@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.Session
+import com.lenterosa.app.saved.SaveResult
+import com.lenterosa.app.saved.SavedPlacesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +56,25 @@ class PlacesViewModel @Inject constructor(private val repository: PlacesReposito
 class PlaceDetailViewModel @Inject constructor(
     private val repository: PlacesRepository,
     auth: AuthGateway,
+    private val saved: SavedPlacesStore,
 ) : ViewModel() {
+
+    val savedIds: StateFlow<Set<String>> = saved.savedIds
+
+    private val _saveMessage = MutableStateFlow<SaveResult?>(null)
+    val saveMessage: StateFlow<SaveResult?> = _saveMessage.asStateFlow()
+
+    fun toggleSaved(placeId: String) {
+        viewModelScope.launch {
+            val result = saved.setSaved(placeId, saved = placeId !in saved.savedIds.value)
+            if (result != SaveResult.DONE) _saveMessage.value = result
+        }
+    }
+
+    fun dismissSaveMessage() {
+        _saveMessage.value = null
+    }
+
 
     private val _place = MutableStateFlow<LoadState<PlaceWithReviews>>(LoadState.Loading)
     val place: StateFlow<LoadState<PlaceWithReviews>> = _place.asStateFlow()

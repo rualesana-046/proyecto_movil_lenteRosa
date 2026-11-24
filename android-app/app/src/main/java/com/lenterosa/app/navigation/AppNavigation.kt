@@ -34,6 +34,7 @@ import com.lenterosa.app.places.PlaceDetailScreen
 import com.lenterosa.app.places.PlaceDetailViewModel
 import com.lenterosa.app.places.PlacesViewModel
 import com.lenterosa.app.privacy.PrivacyScreen
+import com.lenterosa.app.saved.SavedViewModel
 import com.lenterosa.app.ui.glass.GlassTopBar
 import com.lenterosa.app.ui.glass.currentMotion
 import com.lenterosa.app.ui.motion.Motion
@@ -47,7 +48,7 @@ object Routes {
     @Serializable
     data object Onboarding
 
-    /** Inicio: mapa (RF-09) y lista (RF-01). */
+    /** Inicio: mapa (RF-09), lista (RF-01) y guardados (RF-05, RF-07). */
     @Serializable
     data object Home
 
@@ -106,6 +107,7 @@ fun AppNavigation(
                 onTabSelected = { homeTab = it },
                 mapViewModel = hiltViewModel<MapViewModel>(),
                 placesViewModel = hiltViewModel<PlacesViewModel>(),
+                savedViewModel = hiltViewModel<SavedViewModel>(),
                 onOpenPlace = { navController.navigate(Routes.PlaceDetail(it)) },
                 onContribute = { id, name -> navController.navigate(Routes.Contribute(id, name)) },
                 onOpenAccount = { navController.navigate(Routes.Account) },

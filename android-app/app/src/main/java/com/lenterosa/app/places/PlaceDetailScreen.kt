@@ -21,10 +21,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -35,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.R
 import com.lenterosa.app.account.Session
+import com.lenterosa.app.saved.SaveButton
+import com.lenterosa.app.saved.saveResultMessage
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
 import com.lenterosa.app.ui.glass.GlassTopBar
@@ -56,10 +61,27 @@ fun PlaceDetailScreen(
     LaunchedEffect(placeId, refreshKey) { viewModel.load(placeId, force = refreshKey > 0L) }
     val state by viewModel.place.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
+    val savedIds by viewModel.savedIds.collectAsStateWithLifecycle()
+    val saveMessage by viewModel.saveMessage.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val messageText = saveMessage?.let { saveResultMessage(it) }
+    LaunchedEffect(messageText) {
+        if (messageText != null) {
+            snackbar.showSnackbar(messageText)
+            viewModel.dismissSaveMessage()
+        }
+    }
     val hazeState = rememberHazeState()
     Scaffold(
         // Sin título en la barra: el nombre del lugar ya es el encabezado de la ficha.
-        topBar = { GlassTopBar(hazeState, navigationIcon = { BackButton(onBack) }) },
+        topBar = {
+            GlassTopBar(
+                hazeState,
+                navigationIcon = { BackButton(onBack) },
+                actions = { SaveButton(saved = placeId in savedIds, onToggle = { viewModel.toggleSaved(placeId) }) },
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
             when (val current = state) {

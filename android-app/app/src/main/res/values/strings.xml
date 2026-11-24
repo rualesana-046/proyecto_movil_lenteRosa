@@ -190,4 +190,22 @@
     <string name="onboarding_next">Siguiente</string>
     <string name="onboarding_start">Empezar a explorar</string>
     <string name="onboarding_progress">Paso %1$d de %2$d</string>
+    <!-- Guardados (RF-05) y avisos (RF-07) -->
+    <string name="home_tab_saved">Guardados</string>
+    <plurals name="saved_unread_alerts">
+        <item quantity="one">%1$d aviso nuevo</item>
+        <item quantity="many">%1$d avisos nuevos</item>
+        <item quantity="other">%1$d avisos nuevos</item>
+    </plurals>
+    <string name="saved_add">Guardar lugar</string>
+    <string name="saved_remove">Quitar de guardados</string>
+    <string name="saved_sign_in">Para guardar lugares y recibir avisos cuando cambie su percepción, inicia sesión.</string>
+    <string name="saved_limit">Puedes guardar hasta 100 lugares. Quita alguno para guardar otro.</string>
+    <string name="saved_failed">No pudimos guardar el cambio. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="saved_alerts_title">Avisos</string>
+    <string name="saved_places_title">Tus lugares</string>
+    <string name="saved_empty">Aún no guardaste lugares. Toca el marcador en la ficha de un lugar o en su tarjeta del mapa.</string>
+    <string name="saved_alert_new">Nuevo</string>
+    <string name="saved_alert_unknown_place">Un lugar que guardaste</string>
+    <string name="saved_alert_change">Cambió cómo lo percibe la comunidad: ahora «%1$s», antes «%2$s».</string>
 </resources>

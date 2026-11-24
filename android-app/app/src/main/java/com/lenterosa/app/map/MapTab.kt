@@ -47,6 +47,7 @@ import com.lenterosa.app.R
 import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.PlaceFormat
 import com.lenterosa.app.places.PlaceSummary
+import com.lenterosa.app.saved.SaveButton
 import com.lenterosa.app.places.message
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
@@ -83,6 +84,8 @@ fun MapTab(
     onCloseCard: () -> Unit,
     map: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
+    savedIds: Set<String> = emptySet(),
+    onToggleSaved: (PlaceSummary) -> Unit = {},
 ) {
     // Sin desenfoque sobre el mapa (su vista nativa no se puede capturar): las tarjetas usan el tinte.
     val hazeState: HazeState? = null
@@ -136,6 +139,8 @@ fun MapTab(
             shownPlace?.let { place ->
                 PlaceMapCard(
                     place = place,
+                    saved = place.id in savedIds,
+                    onToggleSaved = { onToggleSaved(place) },
                     hazeState = hazeState,
                     onOpen = { onOpenPlace(place.id) },
                     onContribute = { onContribute(place) },
@@ -203,6 +208,8 @@ private fun StatusCard(text: String, action: String?, onAction: () -> Unit, haze
 @Composable
 private fun PlaceMapCard(
     place: PlaceSummary,
+    saved: Boolean,
+    onToggleSaved: () -> Unit,
     hazeState: HazeState?,
     onOpen: () -> Unit,
     onContribute: () -> Unit,
@@ -215,7 +222,14 @@ private fun PlaceMapCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(place.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    place.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+                SaveButton(saved = saved, onToggle = onToggleSaved)
+            }
             Text(
                 text = stringResource(
                     R.string.places_category_distance,
