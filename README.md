@@ -160,7 +160,7 @@ Abre `android-app/` en Android Studio, elige un emulador con API 37 (por ejemplo
 
 La app abre la lista de lugares alrededor del centro de Pasto (zona del piloto). Con la API local en el perfil `local` aparecen los lugares ficticios del seed, marcados `[FICTICIO]`. Desde la lista se abre la ficha de cada lugar; para aportar una opinión hace falta una cuenta con el correo verificado.
 
-La fuente Plus Jakarta Sans se descarga con Google Play Services: usa una imagen del emulador con Google Play o Google APIs. Sin ella, la app usa la fuente del sistema.
+La fuente Plus Jakarta Sans va incluida en la app (licencia SIL OFL 1.1, en `android-app/app/src/main/assets/licenses/`).
 
 ## Forma de trabajo
 
