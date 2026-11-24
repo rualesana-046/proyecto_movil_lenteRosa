@@ -102,7 +102,7 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
    Usa el puerto `5433` de este equipo (no el 5432), para convivir con un PostgreSQL local que ya esté instalado. La API apunta a `localhost:5433` por defecto.
 
-2. Carga las variables de `.env` en la terminal (Spring no lee `.env` por sí solo) y arranca la API con el perfil `local`, que agrega datos **ficticios** de Pasto (8 lugares marcados `[FICTICIO]` y 6 opiniones):
+2. Carga las variables de `.env` en la terminal (Spring no lee `.env` por sí solo) y arranca la API con el perfil `local`, que agrega datos **ficticios** de Pasto (8 lugares marcados `[FICTICIO]` y 24 opiniones):
 
    - Mac (zsh/bash):
 
