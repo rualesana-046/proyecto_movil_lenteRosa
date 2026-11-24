@@ -1,5 +1,9 @@
 package com.lenterosa.app.onboarding
 
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import com.lenterosa.app.ui.theme.DarkTokens
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -97,6 +101,18 @@ class OnboardingTest {
         // El segundo paso ya está en su lugar final a los 50 ms: no hubo desplazamiento animado.
         assertEquals(settled, atOnce)
         compose.onNodeWithContentDescription("Paso 2 de 3").assertIsDisplayed()
+    }
+
+    @Test
+    fun `en modo oscuro el título se dibuja con el color de texto del tema, no en negro`() {
+        compose.setContent {
+            LenteRosaTheme(darkTheme = true) { OnboardingScreen(onFinish = {}) }
+        }
+
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText("Cómo se siente un lugar").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+
+        assertEquals(DarkTokens.onBackground, layouts.single().layoutInput.style.color)
     }
 
     @Test

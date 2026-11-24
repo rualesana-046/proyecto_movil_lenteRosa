@@ -24,10 +24,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +76,8 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val isLast = pager.currentPage == steps.lastIndex
     val colors = MaterialTheme.colorScheme
 
+    // Fuera de un Scaffold o Surface no hay color de texto del tema: sin esto el texto sería negro en modo oscuro.
+    CompositionLocalProvider(LocalContentColor provides colors.onBackground) {
     Box(
         Modifier
             .fillMaxSize()
@@ -106,6 +110,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 Text(stringResource(if (isLast) R.string.onboarding_start else R.string.onboarding_next))
             }
         }
+    }
     }
 }
 
