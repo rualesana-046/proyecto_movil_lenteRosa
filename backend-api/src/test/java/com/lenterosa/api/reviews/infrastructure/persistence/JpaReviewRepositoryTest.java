@@ -196,6 +196,32 @@ class JpaReviewRepositoryTest {
                 .isEqualTo("uid-b");
     }
 
+    @Test
+    @DisplayName("Guardar con autora: el UID queda en la base y las consultas de límites lo usan")
+    void saveWithAuthorAndLimitQueries() {
+        Review day = new Review(UUID.randomUUID(), placeId, DimensionScores.of(4, 4, 3, null), VisitPeriod.DAY, null, T0);
+        Review night = new Review(UUID.randomUUID(), placeId, DimensionScores.of(2, 2, 2, 2), VisitPeriod.NIGHT, null,
+                T0.plusSeconds(3_600));
+        Review elsewhere = new Review(UUID.randomUUID(), otherPlaceId, DimensionScores.of(3, 3, 3, null), VisitPeriod.DAY,
+                null, T0.plusSeconds(7_200));
+        repository.lockAuthor("uid-a");
+        repository.save(day, "uid-a");
+        repository.save(night, "uid-a");
+        repository.save(elsewhere, "uid-a");
+        repository.save(new Review(UUID.randomUUID(), placeId, DimensionScores.of(1, 1, 1, null), VisitPeriod.DAY, null, T0),
+                "uid-b");
+        jpa.flush();
+
+        assertThat(jdbc.queryForObject("SELECT author_id FROM reviews WHERE id = ?", String.class, day.id()))
+                .isEqualTo("uid-a");
+        assertThat(repository.oldestReviewByAuthorSince("uid-a", placeId, VisitPeriod.DAY, T0.minusSeconds(1)))
+                .hasValue(T0);
+        assertThat(repository.oldestReviewByAuthorSince("uid-a", placeId, VisitPeriod.DAY, T0)).isEmpty();
+        assertThat(repository.oldestReviewByAuthorSince("uid-c", placeId, VisitPeriod.DAY, T0.minusSeconds(1))).isEmpty();
+        assertThat(repository.reviewTimesByAuthorSince("uid-a", T0.minusSeconds(1)))
+                .containsExactly(T0, T0.plusSeconds(3_600), T0.plusSeconds(7_200));
+    }
+
     private void setAuthor(Review review, String authorId) {
         jdbc.update("UPDATE reviews SET author_id = ? WHERE id = ?", authorId, review.id());
     }

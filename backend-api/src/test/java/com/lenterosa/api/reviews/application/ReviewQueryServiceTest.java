@@ -145,6 +145,26 @@ class ReviewQueryServiceTest {
         }
 
         @Override
+        public void save(Review review, String authorId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void lockAuthor(String authorId) {
+        }
+
+        @Override
+        public java.util.Optional<Instant> oldestReviewByAuthorSince(String authorId, UUID placeId, VisitPeriod period,
+                Instant since) {
+            return java.util.Optional.empty();
+        }
+
+        @Override
+        public List<Instant> reviewTimesByAuthorSince(String authorId, Instant since) {
+            return List.of();
+        }
+
+        @Override
         public RawReviewStats statsForPlace(UUID placeId) {
             return stats;
         }
