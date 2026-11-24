@@ -152,4 +152,31 @@
         <item quantity="many">%1$d minutos</item>
         <item quantity="other">%1$d minutos</item>
     </plurals>
+    <!-- Inicio y mapa (RF-09) -->
+    <string name="home_tab_map">Mapa</string>
+    <string name="home_tab_list">Lista</string>
+    <string name="map_near_me">Cerca de mí</string>
+    <string name="map_locating">Buscando…</string>
+    <string name="map_search_here">Buscar en esta zona</string>
+    <string name="map_loading">Cargando lugares…</string>
+    <string name="map_no_places">No hay lugares en esta zona todavía.</string>
+    <string name="map_open_place">Ver ficha</string>
+    <string name="map_contribute">Aportar</string>
+    <string name="map_close">Cerrar</string>
+    <string name="map_ok">Entendido</string>
+    <string name="map_location_title">Usar tu ubicación una vez</string>
+    <string name="map_location_explanation">Para mostrarte lugares cerca, Lente Rosa usará tu ubicación aproximada solo esta vez. No la guardamos ni seguimos tus movimientos.</string>
+    <string name="map_location_continue">Continuar</string>
+    <string name="map_location_denied">Sin permiso de ubicación. El mapa sigue mostrando Pasto; puedes moverlo y tocar «Buscar en esta zona».</string>
+    <string name="map_location_disabled">La ubicación del teléfono está apagada. Actívala en Ajustes para usar «Cerca de mí».</string>
+    <string name="map_location_unavailable">No pudimos saber dónde estás. Inténtalo de nuevo en un momento.</string>
+
+    <!-- Aviso de privacidad (RNF-01) -->
+    <string name="privacy_title">Tu privacidad</string>
+    <string name="privacy_location_title">Tu ubicación</string>
+    <string name="privacy_location_body">Lente Rosa no guarda tu ubicación ni sigue tus movimientos. Solo la usa, de forma aproximada, si tocas «Cerca de mí», para buscar lugares en ese momento.</string>
+    <string name="privacy_map_title">El mapa</string>
+    <string name="privacy_map_body">Las imágenes del mapa las entrega %1$s. Ese servicio puede ver qué zona del mapa estás mirando y la dirección IP técnica de tu conexión, pero no sabe quién eres: Lente Rosa no le envía tu nombre, tu correo ni tu cuenta.</string>
+    <string name="privacy_reviews_title">Tus opiniones</string>
+    <string name="privacy_reviews_body">Tus opiniones se publican de forma anónima: nadie ve tu nombre ni tu correo. Si eliminas tu cuenta, tus opiniones se conservan, pero ya nadie puede saber que fueron tuyas.</string>
 </resources>

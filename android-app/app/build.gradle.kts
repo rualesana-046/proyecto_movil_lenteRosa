@@ -18,6 +18,22 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // Mapa (RF-09, ADR 0009): OpenFreeMap por defecto, sin clave. Se puede cambiar de proveedor
+        // (por ejemplo Stadia Maps) con propiedades de Gradle, sin tocar el código; la atribución
+        // y el nombre del proveedor cambian junto con el estilo.
+        buildConfigField("String", "MAP_STYLE_URL", quoted(mapProperty("mapStyleUrl", "https://tiles.openfreemap.org/styles/liberty")))
+        buildConfigField("String", "MAP_PROVIDER_NAME", quoted(mapProperty("mapProviderName", "OpenFreeMap")))
+        buildConfigField(
+            "String",
+            "MAP_ATTRIBUTION",
+            quoted(mapProperty("mapAttribution", "© OpenFreeMap © OpenMapTiles · Datos © colaboradores de OpenStreetMap")),
+        )
+        buildConfigField(
+            "String",
+            "MAP_ATTRIBUTION_URL",
+            quoted(mapProperty("mapAttributionUrl", "https://www.openstreetmap.org/copyright")),
+        )
     }
 
     buildTypes {
@@ -45,6 +61,8 @@ android {
     testOptions {
         // En las pruebas de JVM, las clases de Android (por ejemplo Log) devuelven valores por defecto.
         unitTests.isReturnDefaultValues = true
+        // Robolectric necesita los recursos para las pruebas de UI en la JVM.
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -76,8 +94,20 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.maplibre.android)
+
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+// Propiedad de Gradle `lenteRosa.<nombre>` (por ejemplo en ~/.gradle/gradle.properties o con -P), o el valor por defecto.
+fun mapProperty(name: String, default: String): String =
+    providers.gradleProperty("lenteRosa.$name").getOrElse(default)
+
+fun quoted(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""

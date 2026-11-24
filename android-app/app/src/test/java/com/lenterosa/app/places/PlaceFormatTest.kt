@@ -50,7 +50,7 @@ class PlaceFormatTest {
 
     @Test
     fun `la pila de pantallas se guarda y se restaura, incluso con nombres con separadores`() {
-        val stack = listOf(Destination.Places, Destination.PlaceDetail("p1"), Destination.Contribute("p1", "Parque · Norte | 2"))
+        val stack = listOf(Destination.Places, Destination.Privacy, Destination.PlaceDetail("p1"), Destination.Contribute("p1", "Parque · Norte | 2"))
 
         assertEquals(stack, BackStackCodec.decode(BackStackCodec.encode(stack)))
         assertEquals(listOf(Destination.Places), BackStackCodec.decode(listOf("desconocida")))
