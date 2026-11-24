@@ -20,9 +20,9 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF | Funcionalidad | Módulos y piezas | Estado | PR |
 |---|---|---|---|---|
 | RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en curso: API completada, con el Índice de Confort; falta la app | #3, #5 |
-| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | en revisión: API y app (registro, Google, verificación, apodo, eliminar cuenta) | #9 |
+| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | completada: API y app (registro, verificación, apodo, eliminar cuenta). Inicio con Google sin probar en un dispositivo | #9 |
 | RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en curso: API completada; falta la app | #5 |
-| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso), pantalla Aportar | pendiente | — |
+| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | en revisión: API; falta la app | #10 |
 | RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
 | RF-07 | Alertas de cambio | `alerts`: detección de cambios y envío con FCM a quien guardó el lugar | pendiente | — |
@@ -43,6 +43,10 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RNF-06 | Calidad | Regresión completa en CI, APK firmado, instalación limpia y README completo | en curso |
 | RNF-07 | Compatibilidad | Android 8.0 (API 26) o superior | completada |
 | RNF-08 | Honestidad | Ninguna integración simulada se presenta como terminada | en curso |
+
+## Alcance del piloto: Pasto
+
+El piloto se hace en Pasto (Nariño): los datos ficticios del seed, la demostración y el centro inicial del mapa son de Pasto. El código no se restringe por ciudad: la búsqueda, las opiniones y el índice funcionan con cualquier coordenada.
 
 ## Notas por funcionalidad
 
