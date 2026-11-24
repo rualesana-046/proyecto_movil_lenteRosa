@@ -56,6 +56,7 @@ Abre `android-app/` en Android Studio una vez: crea `android-app/local.propertie
   keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
   ```
 
+- **Red local en depuración (Android 17):** la primera vez que abras la app de depuración, Android pedirá permiso para "dispositivos cercanos". Acéptalo: es el permiso `ACCESS_LOCAL_NETWORK`, necesario para que la app llegue a la API de tu equipo (`10.0.2.2:8080`). Sin él, las llamadas a la API se agotan. La versión publicada no lo pide.
 - **API:** define `FIREBASE_PROJECT_ID` (el identificador público del proyecto, no es un secreto) al arrancarla. Sin esa variable, la API rechaza todos los inicios de sesión; la consulta como invitada sigue funcionando.
 
 ## Probar

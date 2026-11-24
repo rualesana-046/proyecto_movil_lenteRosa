@@ -28,6 +28,8 @@ RF-02 pide registro e inicio de sesión con correo o Google (Firebase Authentica
 11. `google-services.json` nunca se versiona; el CI copia `.github/ci/google-services.placeholder.json`, con valores falsos, solo para compilar.
 12. El orden al eliminar es reautenticación → `DELETE /api/v1/me` (con un token recién emitido) → borrar en Firebase. Si la API falla, la cuenta de Firebase no se toca.
 13. La app incorpora Hilt y KSP (ADR 0001) y llama a la API con Retrofit; los tokens nunca se escriben en los logs. En depuración, la API local se alcanza por `http://10.0.2.2:8080`; la versión publicada solo permite HTTPS.
+14. **Red local en depuración.** En Android 17 (API 37), con `targetSdk` 37, conectarse a una dirección de la red local exige `ACCESS_LOCAL_NETWORK`, y sin él el tráfico se descarta en silencio. La API del equipo (`10.0.2.2` desde el emulador) es red local, así que **solo la versión de depuración** declara y pide ese permiso (Android lo muestra como "dispositivos cercanos"). La versión publicada usa la API pública por HTTPS y no lo declara.
+15. **Mensajes de red.** Si el teléfono no tiene internet, la app dice "No tienes conexión a internet"; si tiene internet pero la API no responde, dice "No pudimos conectar con Lente Rosa. Inténtalo más tarde." Al abrir la app con sesión se reintenta el registro en la API, que es idempotente.
 
 ## Consecuencias
 
