@@ -108,6 +108,20 @@ class AccountApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Eliminar una cuenta que nunca se registró en la API responde 204 y deja anónimas sus opiniones")
+    void deleteWithoutPriorRegistrationIsIdempotent() throws Exception {
+        String token = FirebaseTestTokens.valid("uid-sin-registro", true);
+        UUID place = insertPlace();
+        insertReview(place, "uid-sin-registro");
+
+        HttpResponse<String> response = send("DELETE", token);
+
+        assertThat(response.statusCode()).isEqualTo(204);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM users", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM reviews WHERE author_id IS NULL", Integer.class)).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("Tokens inválidos responden 401: otra llave, vencido, otro proyecto o sin token")
     void invalidTokensAreRejected() throws Exception {
         assertThat(send("PUT", FirebaseTestTokens.signedWithOtherKey("uid-x")).statusCode()).isEqualTo(401);
