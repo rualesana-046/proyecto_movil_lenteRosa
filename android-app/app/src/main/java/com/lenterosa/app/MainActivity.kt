@@ -7,19 +7,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.lenterosa.app.account.AccountRoute
-import com.lenterosa.app.account.AccountViewModel
 import com.lenterosa.app.account.GoogleIdTokenProvider
+import com.lenterosa.app.navigation.AppNavigation
 import com.lenterosa.app.ui.theme.LenteRosaTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-// Por ahora la app abre la cuenta (RF-02); la navegación completa llega con el onboarding (RF-11) y el mapa (RF-09).
+// Abre la lista de lugares del piloto (RF-01); el mapa (RF-09) y el onboarding (RF-11) llegan después.
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -34,14 +28,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LenteRosaTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val viewModel: AccountViewModel = hiltViewModel()
-                    AccountRoute(
-                        viewModel = viewModel,
-                        requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) },
-                        modifier = Modifier.padding(innerPadding),
-                    )
-                }
+                AppNavigation(requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) })
             }
         }
     }

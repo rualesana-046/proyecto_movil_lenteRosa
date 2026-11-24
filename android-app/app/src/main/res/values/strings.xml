@@ -54,4 +54,102 @@
     <string name="comfort_uncomfortable">Poco cómodo</string>
     <string name="comfort_few_opinions">Pocas opiniones</string>
     <string name="comfort_index_value">%1$d de 100</string>
+    <string name="comfort_disclaimer">El Índice de Confort refleja cómo percibe la comunidad un lugar. No garantiza tu seguridad ni sustituye a los servicios de emergencia.</string>
+    <string name="uncertainty_high">Basado en pocas opiniones: tómalo con cautela.</string>
+    <string name="uncertainty_medium">Basado en algunas opiniones.</string>
+    <string name="uncertainty_low">Basado en varias opiniones.</string>
+
+    <!-- Lugares (RF-01) -->
+    <string name="places_subtitle">Lugares cerca del centro de Pasto</string>
+    <string name="places_search">Buscar por nombre</string>
+    <string name="places_open_account">Tu cuenta</string>
+    <string name="places_open_detail">ver la ficha del lugar</string>
+    <string name="places_category_distance">%1$s · a %2$s</string>
+    <string name="places_empty">Todavía no hay lugares cerca.</string>
+    <string name="places_empty_search">No encontramos lugares con ese nombre cerca.</string>
+    <string name="places_retry">Intentar de nuevo</string>
+    <string name="places_error_network">No tienes conexión a internet. Revisa tus datos o el Wi-Fi e inténtalo de nuevo.</string>
+    <string name="places_error_unreachable">No pudimos conectar con Lente Rosa. Inténtalo más tarde.</string>
+    <string name="places_error_not_found">Este lugar ya no está disponible.</string>
+    <string name="places_error_server">El servidor no pudo responder. Inténtalo más tarde.</string>
+    <string name="navigation_back">Volver</string>
+
+    <string name="category_park">Parque</string>
+    <string name="category_street">Calle</string>
+    <string name="category_transport">Transporte</string>
+    <string name="category_commerce">Comercio</string>
+    <string name="category_education">Educación</string>
+    <string name="category_health">Salud</string>
+    <string name="category_nightlife">Vida nocturna</string>
+    <string name="category_other">Otro</string>
+
+    <string name="dimension_lighting">Iluminación</string>
+    <string name="dimension_women_presence">Afluencia de mujeres</string>
+    <string name="dimension_commercial_visibility">Visibilidad comercial</string>
+    <string name="dimension_night_experience">Experiencia nocturna</string>
+
+    <!-- Ficha del lugar -->
+    <string name="detail_comfort_title">Índice de Confort</string>
+    <string name="detail_night_missing">Faltan opiniones de noche: el índice se basa sobre todo en visitas de día.</string>
+    <plurals name="detail_review_count">
+        <item quantity="one">%1$d opinión</item>
+        <item quantity="many">%1$d opiniones</item>
+        <item quantity="other">%1$d opiniones</item>
+    </plurals>
+    <plurals name="detail_review_count_last">
+        <item quantity="one">%1$d opinión · la última el %2$s</item>
+        <item quantity="many">%1$d opiniones · la última el %2$s</item>
+        <item quantity="other">%1$d opiniones · la última el %2$s</item>
+    </plurals>
+    <string name="detail_averages_title">Promedios de la comunidad</string>
+    <string name="detail_average_value">%1$s de 5</string>
+    <string name="detail_no_data">Sin datos</string>
+    <string name="detail_recent_reviews">Opiniones recientes</string>
+    <string name="detail_no_reviews">Aún no hay opiniones. Puedes ser la primera en aportar.</string>
+    <string name="detail_contribute">Aportar mi opinión</string>
+    <string name="detail_sign_in_to_contribute">Para opinar necesitas iniciar sesión. Tus opiniones siempre son anónimas.</string>
+    <string name="detail_verify_to_contribute">Para opinar necesitas verificar tu correo. Revisa el enlace que te enviamos.</string>
+    <string name="detail_go_to_account">Ir a mi cuenta</string>
+    <string name="review_day">De día</string>
+    <string name="review_night">De noche</string>
+    <string name="review_scores">Iluminación %1$d · Mujeres %2$d · Comercio %3$d · Noche %4$s</string>
+
+    <!-- Aportar (RF-04) -->
+    <string name="contribute_title">Opinar sobre %1$s</string>
+    <string name="contribute_intro">Califica de 1 a 5 cómo percibiste el lugar. Todas las preguntas son obligatorias, menos el comentario.</string>
+    <string name="contribute_scale_lighting">1: muy oscuro · 5: muy bien iluminado</string>
+    <string name="contribute_scale_women_presence">1: casi no había mujeres · 5: había muchas mujeres</string>
+    <string name="contribute_scale_commercial_visibility">1: nada abierto a la vista · 5: muchos negocios abiertos</string>
+    <string name="contribute_scale_night_experience">1: muy incómoda · 5: muy cómoda</string>
+    <string name="contribute_score_description">%1$s: %2$d de 5</string>
+    <string name="contribute_period_title">¿Cuándo fuiste?</string>
+    <string name="contribute_period_day">Fui de día</string>
+    <string name="contribute_period_night">Fui de noche</string>
+    <string name="contribute_not_at_night">No fui de noche</string>
+    <string name="contribute_comment">Comentario (opcional)</string>
+    <string name="contribute_comment_hint">%1$d de %2$d caracteres. No incluyas teléfonos, correos ni enlaces.</string>
+    <string name="contribute_comment_too_long">El comentario puede tener hasta %1$d caracteres.</string>
+    <string name="contribute_missing">Responde esta pregunta.</string>
+    <string name="contribute_submit">Publicar opinión</string>
+    <string name="contribute_sending">Publicando…</string>
+    <string name="contribute_anonymous">Tu opinión se publica de forma anónima: nadie verá tu nombre ni tu correo.</string>
+    <string name="contribute_error_contact_data">Por tu seguridad y la de otras personas, no incluyas datos de contacto ni enlaces.</string>
+    <string name="contribute_error_invalid">Revisa las respuestas e inténtalo de nuevo.</string>
+    <string name="contribute_error_rate_limited">Ya opinaste hace poco.</string>
+    <string name="contribute_wait">Podrás volver a hacerlo en %1$s.</string>
+    <plurals name="wait_days">
+        <item quantity="one">%1$d día</item>
+        <item quantity="many">%1$d días</item>
+        <item quantity="other">%1$d días</item>
+    </plurals>
+    <plurals name="wait_hours">
+        <item quantity="one">%1$d hora</item>
+        <item quantity="many">%1$d horas</item>
+        <item quantity="other">%1$d horas</item>
+    </plurals>
+    <plurals name="wait_minutes">
+        <item quantity="one">%1$d minuto</item>
+        <item quantity="many">%1$d minutos</item>
+        <item quantity="other">%1$d minutos</item>
+    </plurals>
 </resources>
