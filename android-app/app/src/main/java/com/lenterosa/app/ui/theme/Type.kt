@@ -2,28 +2,18 @@ package com.lenterosa.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.lenterosa.app.R
 
-// Plus Jakarta Sans como fuente descargable de Google Fonts (ADR 0008): el sistema la descarga una vez
-// y la comparte entre apps. Si no está disponible (sin Google Play o sin conexión la primera vez), se usa
-// la fuente del sistema y la app sigue funcionando.
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs,
-)
-
-private val plusJakartaSans = GoogleFont("Plus Jakarta Sans")
-
+// Plus Jakarta Sans incluida en la app (licencia SIL OFL 1.1, en assets/licenses): funciona sin conexión
+// y sin Google Play. Los archivos son los TTF estáticos del repositorio oficial tokotype/PlusJakartaSans (ADR 0008).
 internal val PlusJakartaSans = FontFamily(
-    Font(googleFont = plusJakartaSans, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = plusJakartaSans, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = plusJakartaSans, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = plusJakartaSans, fontProvider = provider, weight = FontWeight.Bold),
+    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
+    Font(R.font.plus_jakarta_sans_medium, FontWeight.Medium),
+    Font(R.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold),
 )
 
 private val base = Typography()
