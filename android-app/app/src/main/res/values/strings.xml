@@ -46,4 +46,12 @@
     <string name="account_message_no_google_account">No hay ninguna cuenta de Google en este teléfono. Agrega una en Ajustes o usa tu correo.</string>
     <string name="account_message_server">El servidor no pudo completar la acción. Inténtalo más tarde.</string>
     <string name="account_message_unknown">Algo salió mal. Inténtalo de nuevo.</string>
+
+    <!-- Índice de Confort (RF-03). Refleja percepción comunitaria: nunca garantiza seguridad. -->
+    <string name="comfort_very_comfortable">Muy cómodo</string>
+    <string name="comfort_comfortable">Cómodo</string>
+    <string name="comfort_mixed_opinions">Opiniones mixtas</string>
+    <string name="comfort_uncomfortable">Poco cómodo</string>
+    <string name="comfort_few_opinions">Pocas opiniones</string>
+    <string name="comfort_index_value">%1$d de 100</string>
 </resources>
