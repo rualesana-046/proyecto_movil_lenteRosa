@@ -30,7 +30,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.R
@@ -52,11 +51,11 @@ fun PlaceDetailScreen(
     LaunchedEffect(placeId, refreshKey) { viewModel.load(placeId, force = refreshKey > 0) }
     val state by viewModel.place.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
-    val title = (state as? LoadState.Ready)?.value?.place?.name.orEmpty()
     Scaffold(
         topBar = {
+            // Sin título en la barra: el nombre del lugar ya es el encabezado de la ficha.
             TopAppBar(
-                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { },
                 navigationIcon = { BackButton(onBack) },
             )
         },
