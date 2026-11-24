@@ -19,15 +19,15 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 
 | RF | Funcionalidad | Módulos y piezas | Estado | PR |
 |---|---|---|---|---|
-| RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | en revisión: API completada; app con lista y ficha del lugar (sin mapa ni ubicación propia) | #3, #5, #11 |
-| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | completada: API y app (registro, verificación, apodo, eliminar cuenta). Inicio con Google sin probar en un dispositivo | #9 |
-| RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | en revisión: API completada; app con etiqueta, ícono, índice e incertidumbre (ADR 0008) | #5, #11 |
-| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | en revisión: API completada; pantalla Aportar en la app | #10, #11 |
+| RF-01 | Consulta como invitada | API: `places`, `reviews` (búsqueda por distancia, detalle con promedios, opiniones anónimas). App: explorar y ficha del lugar | completada: API y app (lista y ficha del lugar) | #3, #5, #11 |
+| RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | completada: API y app (registro, verificación, apodo, eliminar cuenta). Falta probar el inicio con Google en un dispositivo real | #9 |
+| RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | completada: API y app con etiqueta, ícono, índice e incertidumbre (ADR 0008) | #5, #11 |
+| RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | completada: API y pantalla Aportar en la app | #10, #11 |
 | RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
 | RF-07 | Alertas de cambio | `alerts`: detección de cambios y envío con FCM a quien guardó el lugar | pendiente | — |
 | RF-08 | Modo discreto | App: atajo del ícono, tile de ajustes rápidos, tres acciones con estados reales | pendiente | — |
-| RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | en revisión | #12 |
+| RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | completada | #12 |
 | RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
 | RF-11 | Onboarding | App: tres pasos al primer uso | pendiente | — |
 
@@ -43,6 +43,28 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RNF-06 | Calidad | Regresión completa en CI, APK firmado, instalación limpia y README completo | en curso |
 | RNF-07 | Compatibilidad | Android 8.0 (API 26) o superior | completada |
 | RNF-08 | Honestidad | Ninguna integración simulada se presenta como terminada | en curso |
+
+## Orden de trabajo
+
+Primero se termina toda la app; después vienen el despliegue de la API y el APK firmado para probar en un teléfono real. El orden puede ajustarse si hay dependencias técnicas, explicándolo en el informe del PR.
+
+1. Liquid glass y animaciones (RNF-03).
+2. Bienvenida de tres pasos (RF-11) y migración a Navigation Compose (TD-09).
+3. Lugares guardados y alertas sutiles (RF-05, RF-07).
+4. Modo discreto (RF-08). Sus decisiones de producto se consultan antes con AM.
+5. Caché sin conexión con la antigüedad de los datos (RF-10).
+6. Cápsula de IA con Gemini (RF-06). Antes se le indica a AM qué debe crear en Google AI Studio.
+7. Repaso de accesibilidad (RNF-02).
+8. Despliegue de la API (RNF-05) y APK firmado para el teléfono (RNF-06).
+
+## Pruebas pendientes en dispositivo real
+
+Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca cuando AM lo prueba en su teléfono.
+
+- [ ] **Cerca de mí con ubicación real** (RF-09): el permiso de ubicación aproximada, el centrado del mapa y la búsqueda alrededor. En el emulador no llegó la posición simulada.
+- [ ] **Inicio de sesión con Google** (RF-02): Credential Manager con una cuenta de Google real.
+- [ ] **Aportar con una cuenta verificada** (RF-04) contra la API desplegada: publicar, límite de 7 días, rechazo de teléfonos y dirección aceptada.
+- [ ] **Revisión visual del mapa** (RF-09): legibilidad de marcadores y atribución al sol, gestos y rendimiento en un teléfono de gama media.
 
 ## Alcance del piloto: Pasto
 
