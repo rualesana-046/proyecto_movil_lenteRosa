@@ -68,6 +68,10 @@ android {
     }
 }
 
+// Robolectric usa una versión de Android que normalmente descarga por su cuenta durante las pruebas.
+// Aquí la descarga Gradle (con su caché, también en el CI) y Robolectric trabaja sin conexión.
+val robolectricAndroidAll: Configuration by configurations.creating
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -106,10 +110,24 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
+    robolectricAndroidAll(libs.robolectric.android.all)
     testImplementation(libs.androidx.navigation.testing)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+tasks.withType<Test>().configureEach {
+    val androidAll: FileCollection = robolectricAndroidAll
+    inputs.files(androidAll).withPropertyName("robolectricAndroidAll")
+    jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+            listOf(
+                "-Drobolectric.offline=true",
+                "-Drobolectric.dependency.dir=${androidAll.singleFile.parentFile.absolutePath}",
+            )
+        },
+    )
 }
 
 // Propiedad de Gradle `lenteRosa.<nombre>` (por ejemplo en ~/.gradle/gradle.properties o con -P), o el valor por defecto.
