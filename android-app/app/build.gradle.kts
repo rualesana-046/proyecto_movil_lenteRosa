@@ -117,14 +117,21 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
+// En el CI, ROBOLECTRIC_DEPS_DIR apunta a la carpeta que el flujo descarga y guarda en caché; en
+// local, Gradle descarga el archivo con su propia caché.
+val robolectricDepsDir: String? = providers.environmentVariable("ROBOLECTRIC_DEPS_DIR").orNull
+
 tasks.withType<Test>().configureEach {
     val androidAll: FileCollection = robolectricAndroidAll
-    inputs.files(androidAll).withPropertyName("robolectricAndroidAll")
+    val depsDir = robolectricDepsDir
+    if (depsDir == null) {
+        inputs.files(androidAll).withPropertyName("robolectricAndroidAll")
+    }
     jvmArgumentProviders.add(
         CommandLineArgumentProvider {
             listOf(
                 "-Drobolectric.offline=true",
-                "-Drobolectric.dependency.dir=${androidAll.singleFile.parentFile.absolutePath}",
+                "-Drobolectric.dependency.dir=${depsDir ?: androidAll.singleFile.parentFile.absolutePath}",
             )
         },
     )
