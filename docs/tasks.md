@@ -23,13 +23,13 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF-02 | Cuentas | `users`, Firebase Auth en la app, validación de tokens en la API (ADR 0006) | completada: API y app (registro, verificación, apodo, eliminar cuenta). Falta probar el inicio con Google en un dispositivo real | #9 |
 | RF-03 | Índice de Confort 0–100 | `comfortindex`: promedio bayesiano, recencia e incertidumbre, con pruebas de casos límite (ADR 0003). App: mostrar índice, etiqueta e incertidumbre | completada: API y app con etiqueta, ícono, índice e incertidumbre (ADR 0008) | #5, #11 |
 | RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | completada: API y pantalla Aportar en la app | #10, #11 |
-| RF-05 | Lugares guardados | `users`, `places` | pendiente | — |
+| RF-05 | Lugares guardados | `users` (tabla y endpoints, límite de 100), botón de guardar y pestaña Guardados en la app (ADR 0012) | en revisión | #16 |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
-| RF-07 | Alertas de cambio | `alerts`: detección de cambios y envío con FCM a quien guardó el lugar | pendiente | — |
+| RF-07 | Alertas de cambio | `alerts`: detección de cambios en cada opinión y avisos sutiles en la app (ADR 0012); el envío por FCM espera aprobación de credenciales | en revisión: avisos en la app; falta FCM | #16 |
 | RF-08 | Modo discreto | App: atajo del ícono, tile de ajustes rápidos, tres acciones con estados reales | pendiente | — |
 | RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | completada | #12 |
 | RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
-| RF-11 | Onboarding | App: tres pasos al primer uso, con Navigation Compose (ADR 0011) | en revisión | #15 |
+| RF-11 | Onboarding | App: tres pasos al primer uso, con Navigation Compose (ADR 0011) | completada | #15 |
 
 ## Requisitos no funcionales
 
@@ -67,6 +67,7 @@ Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca
 - [ ] **Revisión visual del mapa** (RF-09): legibilidad de marcadores y atribución al sol, gestos y rendimiento en un teléfono de gama media.
 - [ ] **Liquid glass con desenfoque real** (RNF-03): en el emulador Haze no dibujó el vidrio y solo se vio el tinte. Revisar en el teléfono el desenfoque detrás de las barras, la legibilidad y la fluidez al desplazarse.
 - [ ] **Fluidez general** (RNF-03, RF-11): transiciones entre pantallas, bienvenida y desplazamiento en un teléfono de gama media. En el emulador, sobrecargado justo después de instalar, la app tardó en responder una vez (ANR) y luego funcionó con normalidad.
+- [ ] **Guardar lugares y avisos con una cuenta real** (RF-05, RF-07): guardar desde la ficha y el mapa, y ver el aviso en la pestaña Guardados cuando otras cuentas opinen sobre un lugar guardado. En el emulador solo se vio la pantalla sin sesión; los avisos se revisaron con capturas generadas en las pruebas.
 
 ## Alcance del piloto: Pasto
 
@@ -80,4 +81,4 @@ El piloto se hace en Pasto (Nariño): los datos ficticios del seed, la demostrac
 
 ## Decisiones pendientes
 
-- Ninguna por ahora. El proveedor de mosaicos de RF-09 se decidió en ADR 0009 (OpenFreeMap, con Stadia Maps como alternativa).
+- **RF-07, envío por FCM:** requiere credenciales de Firebase Admin (secreto) y guardar el token de notificaciones de cada teléfono (privacidad). Espera la aprobación de AM (ADR 0012).

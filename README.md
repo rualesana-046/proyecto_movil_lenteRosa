@@ -140,6 +140,8 @@ El APK queda en `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 | GET | `/api/v1/health` | Salud de la API |
 | PUT / GET / DELETE | `/api/v1/me` | Registrar, consultar o eliminar la propia cuenta. **Requiere** `Authorization: Bearer <ID token de Firebase>`; al eliminar, las opiniones quedan anónimas |
 | POST | `/api/v1/places/{id}/reviews` | Aportar una opinión (RF-04). **Requiere** sesión y correo verificado. Límite: una por lugar y periodo cada 7 días y 20 en 24 horas (429 con `Retry-After`). Los comentarios no pueden tener teléfonos, correos ni enlaces |
+| GET / PUT / DELETE | `/api/v1/me/saved-places[/{placeId}]` | Lugares guardados (RF-05). **Requiere** sesión. Hasta 100 por cuenta |
+| GET, PUT | `/api/v1/me/alerts`, `/api/v1/me/alerts/read` | Avisos de cambio en los lugares guardados (RF-07) y marcarlos como leídos. **Requiere** sesión |
 
 Ejemplo con los datos ficticios:
 
