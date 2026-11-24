@@ -1,6 +1,8 @@
 package com.lenterosa.app.ui.glass
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -8,11 +10,17 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.glass.GlassAccessibilitySettings
@@ -37,16 +45,47 @@ object GlassPolicy {
 }
 
 /**
- * Tinte del vidrio sobre el contenido desenfocado. Con esta opacidad, el texto del tema cumple
- * WCAG AA sobre cualquier fondo, del negro al blanco (GlassContrastTest lo verifica).
+ * Capas del vidrio de Lente Rosa (RNF-03, ADR 0010), de abajo hacia arriba:
+ * 1. desenfoque con saturación del contenido de atrás (Haze, cuando el dispositivo lo soporta);
+ * 2. degradado translúcido: tinte del color de superficie, más denso arriba y con un toque rosa abajo;
+ * 3. resplandor interno: luz suave que nace en la esquina superior;
+ * 4. brillo de borde: un filo de luz más intenso arriba.
+ *
+ * El degradado garantiza WCAG AA sobre cualquier fondo, del negro al blanco, incluso con el
+ * resplandor en su punto máximo (GlassContrastTest lo verifica en ambos temas).
  */
 object GlassTokens {
+    /** Opacidad mínima del degradado (abajo). Arriba es más denso. */
     const val TINT_ALPHA = 0.9f
+    const val TINT_TOP_ALPHA = 0.95f
+
+    /** Cuánto rosa principal se mezcla en la parte baja del degradado. */
+    const val ROSE_MIX = 0.07f
+
+    /** Saturación del contenido desenfocado (1 = sin cambio). */
+    const val SATURATION = 1.4f
 
     fun tint(surface: Color): Color = surface.copy(alpha = TINT_ALPHA)
 
+    fun gradientTop(surface: Color): Color = surface.copy(alpha = TINT_TOP_ALPHA)
+
+    fun gradientBottom(surface: Color, primary: Color): Color = lerp(surface, primary, ROSE_MIX).copy(alpha = TINT_ALPHA)
+
+    /** Color máximo del resplandor interno: blanco en claro, rosa tenue en oscuro (no aclara el texto claro). */
+    fun glow(dark: Boolean, primary: Color): Color = if (dark) primary.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.35f)
+
+    fun rimTop(dark: Boolean): Color = Color.White.copy(alpha = if (dark) 0.3f else 0.75f)
+
+    fun rimBottom(dark: Boolean): Color = Color.White.copy(alpha = if (dark) 0.06f else 0.2f)
+
     /** Peor caso del vidrio: el tinte compuesto sobre un fondo dado (en las pruebas, negro y blanco). */
     fun compositeOver(surface: Color, backdrop: Color): Color = tint(surface).compositeOver(backdrop)
+
+    /** Colores de fondo posibles bajo el texto: cada extremo del degradado, con y sin resplandor. */
+    fun backgroundsUnderText(surface: Color, primary: Color, dark: Boolean, backdrop: Color): List<Color> {
+        val stops = listOf(gradientTop(surface), gradientBottom(surface, primary)).map { it.compositeOver(backdrop) }
+        return stops + stops.map { glow(dark, primary).compositeOver(it) }
+    }
 }
 
 /** Preferencias del sistema y del modo de la app que afectan al vidrio y al movimiento. */
@@ -90,21 +129,26 @@ object LenteRosaGlass {
  * se dibuja el mismo tinte translúcido sin desenfoque, con el mismo contraste garantizado.
  * En modo opaco (Modo discreto o alto contraste) dibuja el color de superficie del tema.
  *
- * El tinte se dibuja siempre debajo del efecto: si el dispositivo no puede renderizar el vidrio
- * (Haze no dibuja nada en ese caso), el contraste sigue garantizado.
+ * El degradado se dibuja siempre, encima del desenfoque: si el dispositivo no puede renderizar
+ * el vidrio (Haze no dibuja nada en ese caso), el contraste sigue garantizado.
  */
 @Composable
 fun Modifier.glassSurface(state: HazeState?, shape: RoundedCornerShape): Modifier {
-    val surface = MaterialTheme.colorScheme.surface
-    val base = semantics { glassSurface = true }
-    return when {
-        LenteRosaGlass.mode() == GlassMode.OPAQUE -> this.then(base).background(MaterialTheme.colorScheme.surfaceContainer, shape)
-        state == null -> this.then(base).background(GlassTokens.tint(surface), shape)
-        else -> this.then(base).background(GlassTokens.tint(surface), shape).hazeGlass(
+    val colors = MaterialTheme.colorScheme
+    val dark = isSystemInDarkTheme()
+    val base = this.then(Modifier.semantics { glassSurface = true })
+    if (LenteRosaGlass.mode() == GlassMode.OPAQUE) {
+        // Modo discreto o alto contraste: superficie opaca, sin ningún ingrediente del vidrio.
+        return base.background(colors.surfaceContainer, shape)
+    }
+    val blurred = if (state == null) {
+        base
+    } else {
+        base.hazeGlass(
             input = HazeInput.Sources(state),
             style = GlassStyle.regular.then {
                 shape(shape)
-                tint(GlassTokens.tint(surface))
+                chromaMultiplier(GlassTokens.SATURATION)
             },
             interactionReducedMotionPolicy = if (LocalVisualPreferences.current.reducedMotion) {
                 GlassReducedMotionPolicy.Reduced
@@ -113,4 +157,19 @@ fun Modifier.glassSurface(state: HazeState?, shape: RoundedCornerShape): Modifie
             },
         )
     }
+    // El degradado va encima del desenfoque: si el dispositivo no puede dibujar el vidrio,
+    // el degradado sigue ahí y el contraste no cambia.
+    return blurred
+        .background(Brush.verticalGradient(listOf(GlassTokens.gradientTop(colors.surface), GlassTokens.gradientBottom(colors.surface, colors.primary))), shape)
+        .clip(shape)
+        .drawBehind {
+            drawRect(
+                Brush.radialGradient(
+                    colors = listOf(GlassTokens.glow(dark, colors.primary), Color.Transparent),
+                    center = Offset(size.width * 0.2f, 0f),
+                    radius = maxOf(size.width, size.height) * 0.7f,
+                ),
+            )
+        }
+        .border(1.dp, Brush.verticalGradient(listOf(GlassTokens.rimTop(dark), GlassTokens.rimBottom(dark))), shape)
 }
