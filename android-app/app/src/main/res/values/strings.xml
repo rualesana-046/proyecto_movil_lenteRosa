@@ -179,4 +179,15 @@
     <string name="privacy_map_body">Las imágenes del mapa las entrega %1$s. Ese servicio puede ver qué zona del mapa estás mirando y la dirección IP técnica de tu conexión, pero no sabe quién eres: Lente Rosa no le envía tu nombre, tu correo ni tu cuenta.</string>
     <string name="privacy_reviews_title">Tus opiniones</string>
     <string name="privacy_reviews_body">Tus opiniones se publican de forma anónima: nadie ve tu nombre ni tu correo. Si eliminas tu cuenta, tus opiniones se conservan, pero ya nadie puede saber que fueron tuyas.</string>
+    <!-- Bienvenida (RF-11) -->
+    <string name="onboarding_perception_title">Cómo se siente un lugar</string>
+    <string name="onboarding_perception_body">Lente Rosa reúne cómo perciben las mujeres de la comunidad cada lugar: iluminación, presencia de otras mujeres, comercio abierto y la experiencia de noche. Es percepción, no una garantía de seguridad, y no reemplaza a los servicios de emergencia.</string>
+    <string name="onboarding_privacy_title">Tu privacidad primero</string>
+    <string name="onboarding_privacy_body">Lente Rosa no sigue tus movimientos ni guarda tu ubicación. Solo la usa, aproximada, si tocas «Cerca de mí». Puedes explorar el mapa sin crear una cuenta.</string>
+    <string name="onboarding_contribute_title">Tu opinión cuida a otras</string>
+    <string name="onboarding_contribute_body">Cuando visites un lugar, cuéntale a la comunidad cómo te sentiste. Para opinar necesitas una cuenta con el correo verificado, y tus opiniones siempre se publican de forma anónima.</string>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_start">Empezar a explorar</string>
+    <string name="onboarding_progress">Paso %1$d de %2$d</string>
 </resources>
