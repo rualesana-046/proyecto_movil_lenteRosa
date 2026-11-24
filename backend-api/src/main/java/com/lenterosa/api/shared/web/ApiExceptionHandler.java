@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,11 @@ class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ProblemDetail wrongType(MethodArgumentTypeMismatchException exception) {
         return badRequest(List.of("El valor de " + exception.getName() + " no tiene el formato esperado."));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ProblemDetail unreadableBody(HttpMessageNotReadableException exception) {
+        return badRequest(List.of("El contenido de la solicitud no tiene el formato esperado."));
     }
 
     private static ProblemDetail badRequest(List<String> errors) {
