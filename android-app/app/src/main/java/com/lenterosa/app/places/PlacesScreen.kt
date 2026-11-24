@@ -17,14 +17,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,64 +37,50 @@ import com.lenterosa.app.R
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
 
-/** Lugares cerca del centro del piloto, del más cercano al más lejano (RF-01). */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Lista de lugares cerca del centro del piloto, del más cercano al más lejano (RF-01). */
 @Composable
-fun PlacesScreen(viewModel: PlacesViewModel, onOpenPlace: (String) -> Unit, onOpenAccount: () -> Unit) {
+fun PlacesContent(viewModel: PlacesViewModel, onOpenPlace: (String) -> Unit, modifier: Modifier = Modifier) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focus = LocalFocusManager.current
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    IconButton(onClick = onOpenAccount) {
-                        Icon(painterResource(R.drawable.ic_account), contentDescription = stringResource(R.string.places_open_account))
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
-            Text(
-                text = stringResource(R.string.places_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            OutlinedTextField(
-                value = state.query,
-                onValueChange = viewModel::onQueryChange,
-                label = { Text(stringResource(R.string.places_search)) },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = {
-                    focus.clearFocus()
-                    viewModel.search()
-                }),
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-            )
-            when (val places = state.places) {
-                LoadState.Loading -> Centered { CircularProgressIndicator() }
-                is LoadState.Error -> Centered {
-                    LoadErrorMessage(places.failure, onRetry = viewModel::search)
+    Column(modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(R.string.places_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        OutlinedTextField(
+            value = state.query,
+            onValueChange = viewModel::onQueryChange,
+            label = { Text(stringResource(R.string.places_search)) },
+            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = {
+                focus.clearFocus()
+                viewModel.search()
+            }),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+        )
+        when (val places = state.places) {
+            LoadState.Loading -> Centered { CircularProgressIndicator() }
+            is LoadState.Error -> Centered {
+                LoadErrorMessage(places.failure, onRetry = viewModel::search)
+            }
+            is LoadState.Ready -> if (places.value.isEmpty()) {
+                Centered {
+                    Text(
+                        text = stringResource(if (state.query.isBlank()) R.string.places_empty else R.string.places_empty_search),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                 }
-                is LoadState.Ready -> if (places.value.isEmpty()) {
-                    Centered {
-                        Text(
-                            text = stringResource(if (state.query.isBlank()) R.string.places_empty else R.string.places_empty_search),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(places.value, key = { it.id }) { place -> PlaceCard(place, onClick = { onOpenPlace(place.id) }) }
-                        item { Disclaimer(Modifier.padding(top = 8.dp)) }
-                    }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(places.value, key = { it.id }) { place -> PlaceCard(place, onClick = { onOpenPlace(place.id) }) }
+                    item { Disclaimer(Modifier.padding(top = 8.dp)) }
                 }
             }
         }

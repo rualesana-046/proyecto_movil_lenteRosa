@@ -7,6 +7,8 @@ import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.CredentialManagerGoogleIdTokenProvider
 import com.lenterosa.app.account.FirebaseAuthGateway
 import com.lenterosa.app.account.GoogleIdTokenProvider
+import com.lenterosa.app.map.AndroidDeviceLocation
+import com.lenterosa.app.map.DeviceLocation
 import com.lenterosa.app.network.AndroidNetworkStatus
 import com.lenterosa.app.network.NetworkStatus
 import com.lenterosa.app.places.PlacesApi
@@ -72,4 +74,7 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun networkStatus(implementation: AndroidNetworkStatus): NetworkStatus
+
+    @Binds
+    abstract fun deviceLocation(implementation: AndroidDeviceLocation): DeviceLocation
 }
