@@ -4,11 +4,14 @@ import com.lenterosa.api.reviews.DecayedRatingSums;
 import com.lenterosa.api.reviews.application.RawReviewStats;
 import com.lenterosa.api.reviews.application.ReviewRepository;
 import com.lenterosa.api.reviews.domain.Review;
+import com.lenterosa.api.reviews.domain.VisitPeriod;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -87,6 +90,48 @@ class JpaReviewRepository implements ReviewRepository {
                         rs.getDouble("night_sum"),
                         rs.getDouble("mean_sum"),
                         rs.getDouble("mean_squared_sum")))
+                .list();
+    }
+
+    @Override
+    @Transactional
+    public void save(Review review, String authorId) {
+        jpa.save(ReviewEntity.fromDomain(review, authorId));
+    }
+
+    @Override
+    @Transactional
+    public void lockAuthor(String authorId) {
+        // Bloqueo de la transacción en curso; se libera solo al confirmar o deshacer.
+        jdbc.sql("SELECT pg_advisory_xact_lock(hashtextextended(:authorId, 0))")
+                .param("authorId", authorId)
+                .query((rs, rowNum) -> 1)
+                .list();
+    }
+
+    @Override
+    public Optional<Instant> oldestReviewByAuthorSince(String authorId, UUID placeId, VisitPeriod period, Instant since) {
+        return jdbc.sql("""
+                        SELECT min(created_at) FROM reviews
+                        WHERE author_id = :authorId AND place_id = :placeId AND visit_period = :period
+                          AND created_at > :since
+                        """)
+                .param("authorId", authorId)
+                .param("placeId", placeId)
+                .param("period", period.name())
+                .param("since", OffsetDateTime.ofInstant(since, ZoneOffset.UTC))
+                .query((rs, rowNum) -> rs.getObject(1, OffsetDateTime.class))
+                .optional()
+                .filter(Objects::nonNull)
+                .map(OffsetDateTime::toInstant);
+    }
+
+    @Override
+    public List<Instant> reviewTimesByAuthorSince(String authorId, Instant since) {
+        return jdbc.sql("SELECT created_at FROM reviews WHERE author_id = :authorId AND created_at > :since ORDER BY created_at")
+                .param("authorId", authorId)
+                .param("since", OffsetDateTime.ofInstant(since, ZoneOffset.UTC))
+                .query((rs, rowNum) -> rs.getObject("created_at", OffsetDateTime.class).toInstant())
                 .list();
     }
 

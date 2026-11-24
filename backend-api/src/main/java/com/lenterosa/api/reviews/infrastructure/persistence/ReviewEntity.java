@@ -54,6 +54,13 @@ class ReviewEntity {
         // Requerido por JPA.
     }
 
+    /** Opinión con autora: el UID solo se guarda en la base y nunca vuelve al dominio ni a la API. */
+    static ReviewEntity fromDomain(Review review, String authorId) {
+        ReviewEntity entity = fromDomain(review);
+        entity.authorId = authorId;
+        return entity;
+    }
+
     static ReviewEntity fromDomain(Review review) {
         ReviewEntity entity = new ReviewEntity();
         entity.id = review.id();
