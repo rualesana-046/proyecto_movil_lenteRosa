@@ -15,8 +15,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * El vidrio deja ver el contenido de atrás, que puede ser de cualquier color. El tinte debe
- * garantizar WCAG AA (4,5:1) para el texto del tema en el peor caso: fondo negro o blanco.
+ * El vidrio deja ver el contenido de atrás, que puede ser de cualquier color. El degradado debe
+ * garantizar WCAG AA (4,5:1) para el texto del tema en el peor caso: fondo negro o blanco, en
+ * cualquier punto del degradado y con el resplandor interno en su punto máximo.
  * Como la luminancia crece con cada canal, cualquier otro fondo queda entre esos dos extremos.
  */
 class GlassContrastTest {
@@ -26,18 +27,18 @@ class GlassContrastTest {
     @Test
     fun `el texto sobre vidrio cumple AA con cualquier fondo en el tema claro`() {
         with(LightTokens) {
-            assertTextOnGlass(onBackground, background, "onBackground")
-            assertTextOnGlass(onSurfaceVariant, background, "onSurfaceVariant")
-            assertTextOnGlass(primary, background, "primary")
+            assertTextOnGlass(onBackground, background, primary, dark = false, "onBackground")
+            assertTextOnGlass(onSurfaceVariant, background, primary, dark = false, "onSurfaceVariant")
+            assertTextOnGlass(primary, background, primary, dark = false, "primary")
         }
     }
 
     @Test
     fun `el texto sobre vidrio cumple AA con cualquier fondo en el tema oscuro`() {
         with(DarkTokens) {
-            assertTextOnGlass(onBackground, background, "onBackground")
-            assertTextOnGlass(onSurfaceVariant, background, "onSurfaceVariant")
-            assertTextOnGlass(primary, background, "primary")
+            assertTextOnGlass(onBackground, background, primary, dark = true, "onBackground")
+            assertTextOnGlass(onSurfaceVariant, background, primary, dark = true, "onSurfaceVariant")
+            assertTextOnGlass(primary, background, primary, dark = true, "primary")
         }
     }
 
@@ -67,12 +68,15 @@ class GlassContrastTest {
         assertNotEquals(ExitTransition.None, full.sinkOut())
     }
 
-    private fun assertTextOnGlass(text: Color, surface: Color, name: String) {
-        val sides = backdrops.map { backdrop ->
-            val glass = GlassTokens.compositeOver(surface, backdrop)
-            val ratio = contrast(text, glass)
-            assertTrue("$name sobre vidrio con fondo $backdrop: ${"%.2f".format(ratio)}:1, menor que 4,5:1", ratio >= 4.5)
-            luminance(text) < luminance(glass)
+    // Revisa cada fondo posible bajo el texto: los dos extremos del degradado, con y sin el resplandor
+    // interno en su punto máximo, sobre fondo negro y blanco.
+    private fun assertTextOnGlass(text: Color, surface: Color, primary: Color, dark: Boolean, name: String) {
+        val sides = backdrops.flatMap { backdrop ->
+            GlassTokens.backgroundsUnderText(surface, primary, dark, backdrop).map { glass ->
+                val ratio = contrast(text, glass)
+                assertTrue("$name sobre vidrio ($glass, fondo $backdrop): ${"%.2f".format(ratio)}:1, menor que 4,5:1", ratio >= 4.5)
+                luminance(text) < luminance(glass)
+            }
         }
         // El texto queda siempre del mismo lado (más oscuro o más claro que el vidrio): ningún fondo
         // intermedio puede igualar su luminancia.
