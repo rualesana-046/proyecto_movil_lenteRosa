@@ -36,8 +36,8 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RNF | Requisito | Cómo se cubre | Estado |
 |---|---|---|---|
 | RNF-01 | Privacidad | Ubicación solo bajo demanda; las coordenadas de búsqueda no se guardan ni se registran (prueba en RF-01); ubicación aproximada solo con "Cerca de mí" y aviso de privacidad en la app (ADR 0009) | en curso |
-| RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | en curso: contraste AA verificado por pruebas y escala de confort con texto e ícono (ADR 0008) |
-| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en curso: tokens, tipografía y escala de confort (ADR 0008); faltan liquid glass y animaciones |
+| RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | en curso: contraste AA verificado por pruebas (también sobre vidrio, ADR 0010), escala de confort con texto e ícono (ADR 0008) y "Quitar animaciones" respetado |
+| RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en revisión: tokens, tipografía, escala de confort (ADR 0008), liquid glass y animaciones (ADR 0010); las transiciones entre pantallas llegan con TD-09 |
 | RNF-04 | Seguridad | Sin secretos en el repositorio; clave de IA solo en la API; tokens validados en la API | en curso |
 | RNF-05 | Costo | Cloud Run con topes y alerta de presupuesto | pendiente |
 | RNF-06 | Calidad | Regresión completa en CI, APK firmado, instalación limpia y README completo | en curso |
@@ -65,6 +65,7 @@ Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca
 - [ ] **Inicio de sesión con Google** (RF-02): Credential Manager con una cuenta de Google real.
 - [ ] **Aportar con una cuenta verificada** (RF-04) contra la API desplegada: publicar, límite de 7 días, rechazo de teléfonos y dirección aceptada.
 - [ ] **Revisión visual del mapa** (RF-09): legibilidad de marcadores y atribución al sol, gestos y rendimiento en un teléfono de gama media.
+- [ ] **Liquid glass con desenfoque real** (RNF-03): en el emulador Haze no dibujó el vidrio y solo se vio el tinte. Revisar en el teléfono el desenfoque detrás de las barras, la legibilidad y la fluidez al desplazarse.
 
 ## Alcance del piloto: Pasto
 
