@@ -7,8 +7,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.lenterosa.app.account.GoogleIdTokenProvider
 import com.lenterosa.app.navigation.AppNavigation
+import com.lenterosa.app.ui.glass.ProvideVisualPreferences
+import com.lenterosa.app.ui.glass.VisualPreferences
+import com.lenterosa.app.ui.motion.Motion
 import com.lenterosa.app.ui.theme.LenteRosaTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -20,6 +26,8 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var googleIdTokens: GoogleIdTokenProvider
 
+    private var visualPreferences by mutableStateOf(VisualPreferences())
+
     private val requestLocalNetwork = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,9 +36,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LenteRosaTheme {
-                AppNavigation(requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) })
+                ProvideVisualPreferences(visualPreferences) {
+                    AppNavigation(requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) })
+                }
             }
         }
+    }
+
+    // Se vuelven a leer al volver a la app, por si la usuaria cambió los ajustes de accesibilidad.
+    override fun onResume() {
+        super.onResume()
+        visualPreferences = VisualPreferences(
+            reducedMotion = Motion.systemReducedMotion(this),
+            highContrast = Motion.systemHighContrastText(this),
+        )
     }
 
     // Solo en depuración: la API local corre en el equipo, que para Android 17 (API 37) es red local y

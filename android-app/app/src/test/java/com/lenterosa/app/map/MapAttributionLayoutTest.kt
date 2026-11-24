@@ -2,10 +2,9 @@ package com.lenterosa.app.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,6 +15,7 @@ import com.lenterosa.app.home.HomeTags
 import com.lenterosa.app.places.Location
 import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.PlaceSummary
+import com.lenterosa.app.ui.glass.GlassSurfaceKey
 import com.lenterosa.app.ui.theme.LenteRosaTheme
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -28,8 +28,8 @@ import org.robolectric.annotation.Config
 
 /**
  * La atribución del mapa debe verse siempre completa y nunca quedar tapada por la barra inferior,
- * la tarjeta del lugar, el botón Aportar ni los controles del mapa (ADR 0009). Si en el futuro
- * un fondo translúcido (liquid glass) o una tarjeta flotante se superpone, esta prueba falla.
+ * la tarjeta del lugar, el botón Aportar, los controles del mapa ni ninguna superficie de vidrio
+ * (ADR 0009 y 0010). Si una zona translúcida o una tarjeta flotante se superpone, esta prueba falla.
  */
 @RunWith(RobolectricTestRunner::class)
 // Aplicación simple: la real inicia MapLibre, que usa código nativo que no corre en la JVM.
@@ -82,7 +82,7 @@ class MapAttributionLayoutTest {
     fun `en la pestaña de la lista no hay mapa ni atribución`() {
         compose.setContent {
             LenteRosaTheme {
-                HomeScaffold(HomeTab.LIST, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}) { }
+                HomeScaffold(HomeTab.LIST, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}) { _, _, _ -> }
             }
         }
         compose.onNodeWithTag(MapTags.ATTRIBUTION).assertDoesNotExist()
@@ -91,9 +91,10 @@ class MapAttributionLayoutTest {
     private fun showMapTab() {
         compose.setContent {
             LenteRosaTheme {
-                HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}) { padding ->
+                HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}) { padding, _, _ ->
                     MapTab(
                         state = busyState,
+                        contentPadding = padding,
                         onNearMe = {},
                         onSearchHere = {},
                         onRetry = {},
@@ -103,7 +104,6 @@ class MapAttributionLayoutTest {
                         onCloseCard = {},
                         // El mapa real (MapLibre) no corre en la JVM; aquí solo importa el espacio que ocupa.
                         map = { modifier -> Box(modifier.background(Color.LightGray)) },
-                        modifier = Modifier.padding(padding),
                     )
                 }
             }
@@ -126,6 +126,13 @@ class MapAttributionLayoutTest {
                 val other = bounds(tag)
                 assertFalse("$tag tapa la atribución: $other sobre $attribution", other.overlaps(attribution))
             }
+
+        // Ninguna superficie de vidrio (barras, tarjetas, avisos) se superpone a la atribución.
+        val glass = compose.onAllNodes(SemanticsMatcher.keyIsDefined(GlassSurfaceKey), useUnmergedTree = true).fetchSemanticsNodes()
+        assertTrue("No se encontraron superficies de vidrio", glass.isNotEmpty())
+        glass.forEach { node ->
+            assertFalse("Vidrio sobre la atribución: ${node.boundsInRoot} y $attribution", node.boundsInRoot.overlaps(attribution))
+        }
 
         // El mapa queda por encima de la atribución: la atribución nunca se dibuja sobre el mapa.
         val map = bounds(MapTags.MAP)

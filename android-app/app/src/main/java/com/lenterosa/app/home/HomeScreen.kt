@@ -4,19 +4,17 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +37,11 @@ import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.PlaceSummary
 import com.lenterosa.app.places.PlacesContent
 import com.lenterosa.app.places.PlacesViewModel
+import com.lenterosa.app.ui.glass.GlassNavigationBar
+import com.lenterosa.app.ui.glass.GlassTopBar
+import com.lenterosa.app.ui.glass.currentMotion
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 enum class HomeTab { MAP, LIST }
 
@@ -47,22 +50,28 @@ object HomeTags {
 }
 
 /**
- * Estructura de inicio: barra superior, contenido y, abajo, la atribución del mapa (solo en la
- * pestaña del mapa) seguida de la barra de navegación. La atribución queda fuera de la zona del
- * contenido, así que ni las tarjetas ni los botones del mapa pueden taparla.
+ * Estructura de inicio: barra superior de vidrio, contenido y, abajo, la atribución del mapa (solo
+ * en la pestaña del mapa) seguida de la barra de navegación de vidrio. El contenido pasa por detrás
+ * de las barras de vidrio, pero la atribución es opaca y queda fuera de esa zona: ni el vidrio ni
+ * las tarjetas ni los botones del mapa pueden taparla (ADR 0009 y 0010).
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScaffold(
     tab: HomeTab,
     onTabSelected: (HomeTab) -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenAccount: () -> Unit,
-    content: @Composable (PaddingValues) -> Unit,
+    content: @Composable (padding: PaddingValues, tab: HomeTab, backdrop: Modifier) -> Unit,
 ) {
+    val hazeState = rememberHazeState()
+    val motion = currentMotion()
+    // La lista se desenfoca detrás de las barras. El mapa no: su vista nativa no se puede capturar,
+    // así que sobre él las barras usan el tinte sin desenfoque.
+    val barBackdrop = hazeState.takeIf { tab == HomeTab.LIST }
     Scaffold(
         topBar = {
-            TopAppBar(
+            GlassTopBar(
+                hazeState = barBackdrop,
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onOpenPrivacy) {
@@ -79,7 +88,7 @@ fun HomeScaffold(
                 if (tab == HomeTab.MAP) {
                     MapAttribution()
                 }
-                NavigationBar(Modifier.testTag(HomeTags.BOTTOM_BAR)) {
+                GlassNavigationBar(barBackdrop, Modifier.testTag(HomeTags.BOTTOM_BAR)) {
                     NavigationBarItem(
                         selected = tab == HomeTab.MAP,
                         onClick = { onTabSelected(HomeTab.MAP) },
@@ -95,8 +104,16 @@ fun HomeScaffold(
                 }
             }
         },
-        content = content,
-    )
+    ) { padding ->
+        AnimatedContent(
+            targetState = tab,
+            transitionSpec = motion.tabTransition(),
+            modifier = Modifier.fillMaxSize(),
+            label = "home-tab",
+        ) { shownTab ->
+            content(padding, shownTab, if (shownTab == HomeTab.LIST) Modifier.hazeSource(hazeState) else Modifier)
+        }
+    }
 }
 
 /** Inicio con el mapa (RF-09) y la lista (RF-01). */
@@ -121,9 +138,10 @@ fun HomeScreen(
     // Se lee una vez al entrar: así, al volver de la ficha, el mapa sigue en la zona que se miraba.
     val initialCamera = remember { mapViewModel.currentCamera() }
 
-    HomeScaffold(tab, onTabSelected, onOpenPrivacy, onOpenAccount) { padding ->
-        when (tab) {
+    HomeScaffold(tab, onTabSelected, onOpenPrivacy, onOpenAccount) { padding, shownTab, backdrop ->
+        when (shownTab) {
             HomeTab.MAP -> MapTab(
+                contentPadding = padding,
                 state = state,
                 onNearMe = {
                     val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -149,9 +167,8 @@ fun HomeScreen(
                         modifier = modifier,
                     )
                 },
-                modifier = Modifier.padding(padding),
             )
-            HomeTab.LIST -> PlacesContent(placesViewModel, onOpenPlace, Modifier.padding(padding))
+            HomeTab.LIST -> PlacesContent(placesViewModel, onOpenPlace, modifier = backdrop, contentPadding = padding)
         }
     }
 

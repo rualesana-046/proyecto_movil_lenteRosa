@@ -1,9 +1,11 @@
 package com.lenterosa.app.places
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,6 +37,9 @@ import com.lenterosa.app.R
 import com.lenterosa.app.account.Session
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
+import com.lenterosa.app.ui.glass.GlassTopBar
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 /** Ficha del lugar: índice, promedios por dimensión y opiniones recientes (RF-01, RF-03). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,20 +55,18 @@ fun PlaceDetailScreen(
     LaunchedEffect(placeId, refreshKey) { viewModel.load(placeId, force = refreshKey > 0) }
     val state by viewModel.place.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
+    val hazeState = rememberHazeState()
     Scaffold(
-        topBar = {
-            // Sin título en la barra: el nombre del lugar ya es el encabezado de la ficha.
-            TopAppBar(
-                title = { },
-                navigationIcon = { BackButton(onBack) },
-            )
-        },
+        // Sin título en la barra: el nombre del lugar ya es el encabezado de la ficha.
+        topBar = { GlassTopBar(hazeState, navigationIcon = { BackButton(onBack) }) },
     ) { padding ->
-        Column(Modifier.padding(padding)) {
+        Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
             when (val current = state) {
-                LoadState.Loading -> Centered { CircularProgressIndicator() }
-                is LoadState.Error -> Centered { LoadErrorMessage(current.failure, onRetry = viewModel::retry) }
-                is LoadState.Ready -> PlaceDetailContent(current.value, session, onContribute, onOpenAccount)
+                LoadState.Loading -> Column(Modifier.padding(padding)) { Centered { CircularProgressIndicator() } }
+                is LoadState.Error -> Column(Modifier.padding(padding)) {
+                    Centered { LoadErrorMessage(current.failure, onRetry = viewModel::retry) }
+                }
+                is LoadState.Ready -> PlaceDetailContent(current.value, session, padding, onContribute, onOpenAccount)
             }
         }
     }
@@ -74,12 +76,19 @@ fun PlaceDetailScreen(
 private fun PlaceDetailContent(
     data: PlaceWithReviews,
     session: Session?,
+    padding: PaddingValues,
     onContribute: (id: String, name: String) -> Unit,
     onOpenAccount: () -> Unit,
 ) {
     val place = data.place
+    // La lista pasa por detrás de la barra de vidrio; el relleno deja libre su espacio.
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = padding.calculateTopPadding() + 16.dp,
+            bottom = padding.calculateBottomPadding() + 16.dp,
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
