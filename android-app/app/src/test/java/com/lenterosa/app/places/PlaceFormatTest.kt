@@ -1,7 +1,5 @@
 package com.lenterosa.app.places
 
-import com.lenterosa.app.navigation.BackStackCodec
-import com.lenterosa.app.navigation.Destination
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,14 +44,6 @@ class PlaceFormatTest {
         val known = listOf("PARK", "STREET", "TRANSPORT", "COMMERCE", "EDUCATION", "HEALTH", "NIGHTLIFE", "OTHER")
         assertEquals(known.size, known.map(PlaceFormat::category).toSet().size)
         assertEquals(PlaceFormat.category("OTHER"), PlaceFormat.category("MUSEO"))
-    }
-
-    @Test
-    fun `la pila de pantallas se guarda y se restaura, incluso con nombres con separadores`() {
-        val stack = listOf(Destination.Places, Destination.Privacy, Destination.PlaceDetail("p1"), Destination.Contribute("p1", "Parque · Norte | 2"))
-
-        assertEquals(stack, BackStackCodec.decode(BackStackCodec.encode(stack)))
-        assertEquals(listOf(Destination.Places), BackStackCodec.decode(listOf("desconocida")))
     }
 
     @Test

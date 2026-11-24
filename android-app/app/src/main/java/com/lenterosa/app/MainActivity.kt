@@ -7,11 +7,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.autoSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.account.GoogleIdTokenProvider
 import com.lenterosa.app.navigation.AppNavigation
+import com.lenterosa.app.navigation.startDestination
+import com.lenterosa.app.onboarding.LaunchViewModel
 import com.lenterosa.app.ui.glass.ProvideVisualPreferences
 import com.lenterosa.app.ui.glass.VisualPreferences
 import com.lenterosa.app.ui.motion.Motion
@@ -19,7 +30,7 @@ import com.lenterosa.app.ui.theme.LenteRosaTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-// Abre la lista de lugares del piloto (RF-01); el mapa (RF-09) y el onboarding (RF-11) llegan después.
+// Abre la bienvenida al primer uso (RF-11) y después el inicio con el mapa (RF-09) y la lista (RF-01).
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -37,7 +48,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             LenteRosaTheme {
                 ProvideVisualPreferences(visualPreferences) {
-                    AppNavigation(requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) })
+                    val launch: LaunchViewModel = hiltViewModel()
+                    val onboardingCompleted by launch.onboardingCompleted.collectAsStateWithLifecycle()
+                    // La primera pantalla se decide una sola vez: al terminar la bienvenida, la navegación
+                    // ya sabe ir al inicio y el grafo no debe rehacerse.
+                    var start by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf<Boolean?>(null) }
+                    if (start == null) start = onboardingCompleted
+                    // Mientras se lee la marca guardada (un instante) se muestra solo el fondo del tema.
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                        start?.let { completed ->
+                            AppNavigation(
+                                startDestination = startDestination(completed),
+                                requestGoogleIdToken = { googleIdTokens.requestIdToken(this@MainActivity) },
+                            )
+                        }
+                    }
                 }
             }
         }

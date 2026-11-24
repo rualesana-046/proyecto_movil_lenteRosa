@@ -1,5 +1,10 @@
 package com.lenterosa.app.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.google.firebase.auth.FirebaseAuth
 import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.account.AccountApi
@@ -11,11 +16,14 @@ import com.lenterosa.app.map.AndroidDeviceLocation
 import com.lenterosa.app.map.DeviceLocation
 import com.lenterosa.app.network.AndroidNetworkStatus
 import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.onboarding.DataStoreOnboardingStore
+import com.lenterosa.app.onboarding.OnboardingStore
 import com.lenterosa.app.places.PlacesApi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -60,6 +68,12 @@ object AppModule {
     @Provides
     @Singleton
     fun placesApi(retrofit: Retrofit): PlacesApi = retrofit.create(PlacesApi::class.java)
+
+    /** Ajustes locales de la app (por ahora, si la bienvenida ya se completó). Nunca datos personales. */
+    @Provides
+    @Singleton
+    fun settingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("ajustes") }
 }
 
 @Module
@@ -77,4 +91,7 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun deviceLocation(implementation: AndroidDeviceLocation): DeviceLocation
+
+    @Binds
+    abstract fun onboardingStore(implementation: DataStoreOnboardingStore): OnboardingStore
 }

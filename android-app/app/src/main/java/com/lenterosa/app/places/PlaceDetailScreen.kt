@@ -47,12 +47,13 @@ import dev.chrisbanes.haze.rememberHazeState
 fun PlaceDetailScreen(
     viewModel: PlaceDetailViewModel,
     placeId: String,
-    refreshKey: Int,
+    refreshKey: Long,
     onBack: () -> Unit,
     onContribute: (id: String, name: String) -> Unit,
     onOpenAccount: () -> Unit,
 ) {
-    LaunchedEffect(placeId, refreshKey) { viewModel.load(placeId, force = refreshKey > 0) }
+    // `refreshKey` cambia al publicar una opinión: la ficha se recarga con el índice actualizado.
+    LaunchedEffect(placeId, refreshKey) { viewModel.load(placeId, force = refreshKey > 0L) }
     val state by viewModel.place.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
     val hazeState = rememberHazeState()
