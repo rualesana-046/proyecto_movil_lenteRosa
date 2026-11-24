@@ -306,6 +306,7 @@ private fun AccountMessage.text(): Int = when (this) {
     AccountMessage.WEAK_PASSWORD -> R.string.account_message_weak_password
     AccountMessage.INVALID_EMAIL -> R.string.account_message_invalid_email
     AccountMessage.NETWORK -> R.string.account_message_network
+    AccountMessage.SERVER_UNREACHABLE -> R.string.account_message_server_unreachable
     AccountMessage.NO_GOOGLE_ACCOUNT -> R.string.account_message_no_google_account
     AccountMessage.SERVER -> R.string.account_message_server
     AccountMessage.UNKNOWN -> R.string.account_message_unknown

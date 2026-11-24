@@ -22,6 +22,7 @@ enum class AuthFailure {
     WEAK_PASSWORD,
     INVALID_EMAIL,
     NETWORK,
+    SERVER_UNREACHABLE,
     NO_GOOGLE_ACCOUNT,
     CANCELLED,
     SERVER,

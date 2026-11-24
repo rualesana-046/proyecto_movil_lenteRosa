@@ -41,7 +41,8 @@
     <string name="account_message_email_in_use">Ya existe una cuenta con ese correo. Inicia sesión.</string>
     <string name="account_message_weak_password">La contraseña debe tener al menos 6 caracteres.</string>
     <string name="account_message_invalid_email">Revisa el correo: no parece válido.</string>
-    <string name="account_message_network">Sin conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="account_message_network">No tienes conexión a internet. Revisa tus datos o el Wi-Fi e inténtalo de nuevo.</string>
+    <string name="account_message_server_unreachable">No pudimos conectar con Lente Rosa. Inténtalo más tarde.</string>
     <string name="account_message_no_google_account">No hay ninguna cuenta de Google en este teléfono. Agrega una en Ajustes o usa tu correo.</string>
     <string name="account_message_server">El servidor no pudo completar la acción. Inténtalo más tarde.</string>
     <string name="account_message_unknown">Algo salió mal. Inténtalo de nuevo.</string>

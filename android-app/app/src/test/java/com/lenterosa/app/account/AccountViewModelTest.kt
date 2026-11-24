@@ -22,12 +22,13 @@ class AccountViewModelTest {
 
     private val auth = FakeAuthGateway()
     private val api = FakeAccountApi(auth.events)
+    private var hasInternet = true
     private lateinit var viewModel: AccountViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = AccountViewModel(auth, AccountRepository(auth, api))
+        viewModel = AccountViewModel(auth, AccountRepository(auth, api) { hasInternet })
     }
 
     @After
@@ -106,6 +107,28 @@ class AccountViewModelTest {
         assertFalse("firebase:delete" in auth.events)
         assertEquals("uid-1", viewModel.state.value.session?.uid)
         assertEquals(AccountMessage.SERVER, viewModel.state.value.message)
+    }
+
+    @Test
+    fun `con internet pero sin respuesta de Lente Rosa se dice que el servidor no respondió`() {
+        viewModel.signIn("ana@ejemplo.com", "secreta")
+        api.deleteTimesOut = true
+
+        viewModel.deleteAccount(Reauthentication.WithPassword("secreta"))
+
+        assertEquals(AccountMessage.SERVER_UNREACHABLE, viewModel.state.value.message)
+        assertFalse("firebase:delete" in auth.events)
+    }
+
+    @Test
+    fun `sin internet se dice que no hay conexión, no que falló el servidor`() {
+        viewModel.signIn("ana@ejemplo.com", "secreta")
+        api.deleteTimesOut = true
+        hasInternet = false
+
+        viewModel.deleteAccount(Reauthentication.WithPassword("secreta"))
+
+        assertEquals(AccountMessage.NETWORK, viewModel.state.value.message)
     }
 
     @Test
@@ -188,6 +211,7 @@ class AccountViewModelTest {
         val deleted = mutableListOf<String>()
         var failRegister = false
         var failDelete = false
+        var deleteTimesOut = false
 
         override suspend fun register(bearer: String): AccountDto {
             if (failRegister) throw java.io.IOException("sin conexión")
@@ -196,6 +220,7 @@ class AccountViewModelTest {
         }
 
         override suspend fun delete(bearer: String): Response<Unit> {
+            if (deleteTimesOut) throw java.net.SocketTimeoutException("failed to connect to /10.0.2.2 (port 8080)")
             if (failDelete) return Response.error(500, "".toResponseBody(null))
             deleted += bearer
             events += "api:delete"
