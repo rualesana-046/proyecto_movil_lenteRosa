@@ -12,6 +12,10 @@ import org.maplibre.android.module.http.HttpRequestUtil
  */
 object MapConfig {
     val styleUrl: String = BuildConfig.MAP_STYLE_URL
+    val darkStyleUrl: String = BuildConfig.MAP_STYLE_URL_DARK
+
+    /** Estilo según el tema: oscuro de noche para no deslumbrar ni llamar la atención. */
+    fun styleUrl(dark: Boolean): String = if (dark) darkStyleUrl else styleUrl
     val providerName: String = BuildConfig.MAP_PROVIDER_NAME
     val attribution: String = BuildConfig.MAP_ATTRIBUTION
     val attributionUrl: String = BuildConfig.MAP_ATTRIBUTION_URL

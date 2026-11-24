@@ -3,6 +3,7 @@ package com.lenterosa.app.map
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +57,7 @@ fun PlacesMap(
     onSelect: (String?) -> Unit,
     onCameraIdle: (center: GeoPoint, radiusMeters: Int, zoom: Double) -> Unit,
     modifier: Modifier = Modifier,
+    dark: Boolean = isSystemInDarkTheme(),
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -110,27 +112,34 @@ fun PlacesMap(
                 )
                 currentOnCameraIdle(GeoPoint(target.latitude, target.longitude), radius, libreMap.cameraPosition.zoom)
             }
-            libreMap.setStyle(Style.Builder().fromUri(MapConfig.styleUrl)) { loaded ->
-                addMarkerImages(context, loaded)
-                loaded.addSource(GeoJsonSource(SOURCE_ID))
-                loaded.addLayer(
-                    SymbolLayer(LAYER_ID, SOURCE_ID).withProperties(
-                        PropertyFactory.iconImage(Expression.get("icon")),
-                        PropertyFactory.iconSize(
-                            Expression.switchCase(Expression.get("selected"), Expression.literal(1.25f), Expression.literal(1f)),
-                        ),
-                        PropertyFactory.iconAllowOverlap(true),
-                        PropertyFactory.iconIgnorePlacement(true),
-                        PropertyFactory.symbolSortKey(
-                            Expression.switchCase(Expression.get("selected"), Expression.literal(1f), Expression.literal(0f)),
-                        ),
-                    ),
-                )
-                style = loaded
-            }
             map = libreMap
         }
         onDispose { }
+    }
+
+    // El estilo sigue al tema; al cambiarlo se vuelven a agregar los marcadores.
+    val styleUrl = MapConfig.styleUrl(dark)
+    LaunchedEffect(map, styleUrl) {
+        val libreMap = map ?: return@LaunchedEffect
+        style = null
+        libreMap.setStyle(Style.Builder().fromUri(styleUrl)) { loaded ->
+            addMarkerImages(context, loaded)
+            loaded.addSource(GeoJsonSource(SOURCE_ID))
+            loaded.addLayer(
+                SymbolLayer(LAYER_ID, SOURCE_ID).withProperties(
+                    PropertyFactory.iconImage(Expression.get("icon")),
+                    PropertyFactory.iconSize(
+                        Expression.switchCase(Expression.get("selected"), Expression.literal(1.25f), Expression.literal(1f)),
+                    ),
+                    PropertyFactory.iconAllowOverlap(true),
+                    PropertyFactory.iconIgnorePlacement(true),
+                    PropertyFactory.symbolSortKey(
+                        Expression.switchCase(Expression.get("selected"), Expression.literal(1f), Expression.literal(0f)),
+                    ),
+                ),
+            )
+            style = loaded
+        }
     }
 
     LaunchedEffect(style, places, selectedId) {
