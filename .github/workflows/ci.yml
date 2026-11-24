@@ -60,8 +60,36 @@ jobs:
       # google-services.json no se versiona: el CI usa uno de relleno, con valores falsos, solo para compilar.
       - name: Usar google-services.json de relleno
         run: cp ../.github/ci/google-services.placeholder.json app/google-services.json
+      # Robolectric necesita un Android de unos cientos de MB que vive solo en Maven Central, que a
+      # veces responde 429 a los runners. Se guarda en una caché propia apenas se descarga (también en
+      # ramas de PR) y la descarga reintenta con espera.
+      - name: Versión del Android de Robolectric
+        id: robolectric
+        run: echo "version=$(sed -n 's/^robolectricAndroidAll = "\(.*\)"$/\1/p' gradle/libs.versions.toml)" >> "$GITHUB_OUTPUT"
+      - name: Restaurar el Android de Robolectric
+        id: robolectric-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/robolectric-deps
+          key: robolectric-${{ steps.robolectric.outputs.version }}
+      - name: Descargar el Android de Robolectric
+        if: steps.robolectric-cache.outputs.cache-hit != 'true'
+        env:
+          VERSION: ${{ steps.robolectric.outputs.version }}
+        run: |
+          version="$VERSION"
+          mkdir -p ~/robolectric-deps
+          curl --fail --location --retry 6 --retry-delay 30 --retry-all-errors \
+            -o ~/robolectric-deps/android-all-instrumented-$version.jar \
+            "https://repo1.maven.org/maven2/org/robolectric/android-all-instrumented/$version/android-all-instrumented-$version.jar"
+      - name: Guardar el Android de Robolectric
+        if: steps.robolectric-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/robolectric-deps
+          key: robolectric-${{ steps.robolectric.outputs.version }}
       # El runner trae el SDK (android-37.0, build-tools 36.0.0) y ANDROID_HOME.
-      - run: ./gradlew testDebugUnitTest lint assembleDebug --console=plain
+      - run: ROBOLECTRIC_DEPS_DIR="$HOME/robolectric-deps" ./gradlew testDebugUnitTest lint assembleDebug --console=plain
       - name: Subir reportes si falla
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
