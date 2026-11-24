@@ -1,5 +1,7 @@
 package com.lenterosa.app.account
 
+import android.util.Log
+import com.lenterosa.app.BuildConfig
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +18,7 @@ sealed interface Reauthentication {
 class AccountRepository @Inject constructor(
     private val auth: AuthGateway,
     private val api: AccountApi,
+    private val network: NetworkStatus,
 ) {
 
     /** Registra la cuenta en la API después de iniciar sesión. */
@@ -49,6 +52,13 @@ class AccountRepository @Inject constructor(
     } catch (e: HttpException) {
         throw AuthException(onHttpError, e)
     } catch (e: IOException) {
-        throw AuthException(AuthFailure.NETWORK, e)
+        // Sin internet es un problema del teléfono; con internet, es que Lente Rosa no respondió.
+        val failure = if (network.hasInternet()) AuthFailure.SERVER_UNREACHABLE else AuthFailure.NETWORK
+        if (BuildConfig.DEBUG) {
+            Log.w(TAG, "No se pudo llamar a la API: ${e.javaClass.simpleName}: ${e.message}")
+        }
+        throw AuthException(failure, e)
     }
 }
+
+private const val TAG = "AccountRepository"

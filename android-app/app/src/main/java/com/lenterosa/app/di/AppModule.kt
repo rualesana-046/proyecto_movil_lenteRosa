@@ -3,10 +3,12 @@ package com.lenterosa.app.di
 import com.google.firebase.auth.FirebaseAuth
 import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.account.AccountApi
+import com.lenterosa.app.account.AndroidNetworkStatus
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.CredentialManagerGoogleIdTokenProvider
 import com.lenterosa.app.account.FirebaseAuthGateway
 import com.lenterosa.app.account.GoogleIdTokenProvider
+import com.lenterosa.app.account.NetworkStatus
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -62,4 +64,7 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun googleIdTokenProvider(implementation: CredentialManagerGoogleIdTokenProvider): GoogleIdTokenProvider
+
+    @Binds
+    abstract fun networkStatus(implementation: AndroidNetworkStatus): NetworkStatus
 }

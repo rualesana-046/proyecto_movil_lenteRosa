@@ -41,6 +41,11 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        // En las pruebas de JVM, las clases de Android (por ejemplo Log) devuelven valores por defecto.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

@@ -23,6 +23,7 @@ enum class AccountMessage(val isError: Boolean) {
     WEAK_PASSWORD(true),
     INVALID_EMAIL(true),
     NETWORK(true),
+    SERVER_UNREACHABLE(true),
     NO_GOOGLE_ACCOUNT(true),
     SERVER(true),
     UNKNOWN(true),
@@ -134,6 +135,7 @@ class AccountViewModel @Inject constructor(
         AuthFailure.WEAK_PASSWORD -> AccountMessage.WEAK_PASSWORD
         AuthFailure.INVALID_EMAIL -> AccountMessage.INVALID_EMAIL
         AuthFailure.NETWORK -> AccountMessage.NETWORK
+        AuthFailure.SERVER_UNREACHABLE -> AccountMessage.SERVER_UNREACHABLE
         AuthFailure.NO_GOOGLE_ACCOUNT -> AccountMessage.NO_GOOGLE_ACCOUNT
         AuthFailure.SERVER -> AccountMessage.SERVER
         AuthFailure.CANCELLED -> null
