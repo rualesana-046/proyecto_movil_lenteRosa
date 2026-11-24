@@ -158,7 +158,11 @@ Abre `android-app/` en Android Studio, elige un emulador con API 37 (por ejemplo
 - Mac: `cd android-app && ./gradlew installDebug`
 - Windows: `cd android-app; .\gradlew.bat installDebug`
 
-La app abre la lista de lugares alrededor del centro de Pasto (zona del piloto). Con la API local en el perfil `local` aparecen los lugares ficticios del seed, marcados `[FICTICIO]`. Desde la lista se abre la ficha de cada lugar; para aportar una opinión hace falta una cuenta con el correo verificado.
+La app abre el mapa centrado en Pasto (zona del piloto), con la lista en la otra pestaña. Con la API local en el perfil `local` aparecen los lugares ficticios del seed, marcados `[FICTICIO]`. Desde la lista se abre la ficha de cada lugar; para aportar una opinión hace falta una cuenta con el correo verificado.
+
+El mapa usa MapLibre con OpenFreeMap, sin clave (ADR 0009). Para probar **Cerca de mí** en el emulador, fija una ubicación en Pasto desde *Extended controls → Location* del emulador. La app solo pide la ubicación aproximada cuando se toca ese botón.
+
+Para cambiar de proveedor de mapa sin tocar el código, define en `~/.gradle/gradle.properties` las propiedades `lenteRosa.mapStyleUrl`, `lenteRosa.mapProviderName`, `lenteRosa.mapAttribution` y `lenteRosa.mapAttributionUrl`. Nunca guardes una clave de un proveedor en el repositorio.
 
 La fuente Plus Jakarta Sans va incluida en la app (licencia SIL OFL 1.1, en `android-app/app/src/main/assets/licenses/`).
 
