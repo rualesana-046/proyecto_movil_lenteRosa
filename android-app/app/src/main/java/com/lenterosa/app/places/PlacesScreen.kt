@@ -37,60 +37,78 @@ import com.lenterosa.app.R
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
 
-/** Lista de lugares cerca del centro del piloto, del más cercano al más lejano (RF-01). */
+/**
+ * Lista de lugares cerca del centro del piloto, del más cercano al más lejano (RF-01). Todo va en
+ * una sola lista que se desplaza por detrás de las barras de vidrio; `contentPadding` deja libre el
+ * espacio de las barras al principio y al final.
+ */
 @Composable
-fun PlacesContent(viewModel: PlacesViewModel, onOpenPlace: (String) -> Unit, modifier: Modifier = Modifier) {
+fun PlacesContent(
+    viewModel: PlacesViewModel,
+    onOpenPlace: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focus = LocalFocusManager.current
-    Column(modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.places_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = viewModel::onQueryChange,
-            label = { Text(stringResource(R.string.places_search)) },
-            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = {
-                focus.clearFocus()
-                viewModel.search()
-            }),
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-        )
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = contentPadding.calculateTopPadding() + 8.dp,
+            bottom = contentPadding.calculateBottomPadding() + 24.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            Text(
+                text = stringResource(R.string.places_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item {
+            OutlinedTextField(
+                value = state.query,
+                onValueChange = viewModel::onQueryChange,
+                label = { Text(stringResource(R.string.places_search)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {
+                    focus.clearFocus()
+                    viewModel.search()
+                }),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         when (val places = state.places) {
-            LoadState.Loading -> Centered { CircularProgressIndicator() }
-            is LoadState.Error -> Centered {
-                LoadErrorMessage(places.failure, onRetry = viewModel::search)
-            }
+            LoadState.Loading -> item { Centered { CircularProgressIndicator() } }
+            is LoadState.Error -> item { Centered { LoadErrorMessage(places.failure, onRetry = viewModel::search) } }
             is LoadState.Ready -> if (places.value.isEmpty()) {
-                Centered {
-                    Text(
-                        text = stringResource(if (state.query.isBlank()) R.string.places_empty else R.string.places_empty_search),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                item {
+                    Centered {
+                        Text(
+                            text = stringResource(if (state.query.isBlank()) R.string.places_empty else R.string.places_empty_search),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
                 }
             } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(places.value, key = { it.id }) { place -> PlaceCard(place, onClick = { onOpenPlace(place.id) }) }
-                    item { Disclaimer(Modifier.padding(top = 8.dp)) }
+                items(places.value, key = { it.id }) { place ->
+                    PlaceCard(place, onClick = { onOpenPlace(place.id) }, modifier = Modifier.animateItem())
                 }
+                item { Disclaimer(Modifier.padding(top = 8.dp)) }
             }
         }
     }
 }
 
 @Composable
-private fun PlaceCard(place: PlaceSummary, onClick: () -> Unit) {
+private fun PlaceCard(place: PlaceSummary, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClickLabel = stringResource(R.string.places_open_detail), onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClickLabel = stringResource(R.string.places_open_detail), onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -110,7 +128,7 @@ private fun PlaceCard(place: PlaceSummary, onClick: () -> Unit) {
 
 @Composable
 internal fun Centered(content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) { content() }
+    Box(Modifier.fillMaxWidth().padding(vertical = 48.dp, horizontal = 24.dp), contentAlignment = Alignment.Center) { content() }
 }
 
 @Composable

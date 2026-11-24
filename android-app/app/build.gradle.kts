@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.maplibre.android)
+    implementation(libs.haze.glass)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 

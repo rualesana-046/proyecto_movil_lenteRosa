@@ -1,7 +1,9 @@
 package com.lenterosa.app.places
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -20,10 +22,12 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -34,6 +38,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.R
+import com.lenterosa.app.ui.glass.GlassTopBar
+import com.lenterosa.app.ui.glass.currentMotion
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 /** Pantalla Aportar (RF-04): tres aspectos obligatorios, día o noche y experiencia nocturna. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,16 +61,25 @@ fun ContributeScreen(
             onPublished()
         }
     }
+    val hazeState = rememberHazeState()
+    val motion = currentMotion()
     Scaffold(
         topBar = {
-            TopAppBar(
+            GlassTopBar(
+                hazeState = hazeState,
                 title = { Text(stringResource(R.string.contribute_title, placeName), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onBack) },
             )
         },
     ) { padding ->
+        // El formulario pasa por detrás de la barra de vidrio; el relleno deja libre su espacio.
         Column(
-            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
+            Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 16.dp, bottom = padding.calculateBottomPadding() + 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Text(stringResource(R.string.contribute_intro), style = MaterialTheme.typography.bodyMedium)
@@ -86,7 +103,12 @@ fun ContributeScreen(
                 }
             }
             CommentField(state.comment, state.showMissing && state.commentTooLong, viewModel::setComment)
-            state.message?.let { MessageCard(it, onOpenAccount) }
+            AnimatedVisibility(visible = state.message != null, enter = motion.riseIn(), exit = motion.sinkOut()) {
+                // Se conserva el último mensaje mientras sale.
+                var shown by remember { mutableStateOf(state.message) }
+                if (state.message != null) shown = state.message
+                shown?.let { MessageCard(it, onOpenAccount) }
+            }
             Button(
                 onClick = { viewModel.submit(placeId) },
                 enabled = !state.sending,
@@ -130,7 +152,7 @@ private fun RatingQuestion(
             }
         }
         extra()
-        if (isMissing) MissingText()
+        AnimatedVisibility(visible = isMissing, enter = currentMotion().popIn(), exit = currentMotion().popOut()) { MissingText() }
     }
 }
 
@@ -150,7 +172,7 @@ private fun PeriodQuestion(value: VisitPeriod?, isMissing: Boolean, onSelect: (V
                     )
                 }
         }
-        if (isMissing) MissingText()
+        AnimatedVisibility(visible = isMissing, enter = currentMotion().popIn(), exit = currentMotion().popOut()) { MissingText() }
     }
 }
 

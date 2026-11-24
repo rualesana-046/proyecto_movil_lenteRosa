@@ -1,8 +1,10 @@
 package com.lenterosa.app.map
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,8 +24,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,6 +50,10 @@ import com.lenterosa.app.places.PlaceSummary
 import com.lenterosa.app.places.message
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
+import com.lenterosa.app.ui.glass.GlassCardShape
+import com.lenterosa.app.ui.glass.currentMotion
+import com.lenterosa.app.ui.glass.glassSurface
+import dev.chrisbanes.haze.HazeState
 
 /** Etiquetas para las pruebas de UI de la pestaña del mapa. */
 object MapTags {
@@ -62,6 +73,7 @@ object MapTags {
 @Composable
 fun MapTab(
     state: MapUiState,
+    contentPadding: PaddingValues,
     onNearMe: () -> Unit,
     onSearchHere: () -> Unit,
     onRetry: () -> Unit,
@@ -72,10 +84,18 @@ fun MapTab(
     map: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.fillMaxSize()) {
+    // Sin desenfoque sobre el mapa (su vista nativa no se puede capturar): las tarjetas usan el tinte.
+    val hazeState: HazeState? = null
+    val motion = currentMotion()
+    // El mapa pasa por detrás de la barra superior de vidrio, pero termina encima de la atribución.
+    Box(modifier.fillMaxSize().padding(bottom = contentPadding.calculateBottomPadding())) {
         map(Modifier.fillMaxSize().testTag(MapTags.MAP))
         Column(
-            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(12.dp),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = contentPadding.calculateTopPadding())
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -96,28 +116,39 @@ fun MapTab(
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
-                if (state.canSearchHere) {
+                AnimatedVisibility(visible = state.canSearchHere, enter = motion.popIn(), exit = motion.popOut()) {
                     FilledTonalButton(onClick = onSearchHere, modifier = Modifier.testTag(MapTags.SEARCH_HERE)) {
                         Text(stringResource(R.string.map_search_here))
                     }
                 }
             }
-            MapStatus(state, onRetry, onDismissLocationMessage)
+            MapStatus(state, hazeState, onRetry, onDismissLocationMessage)
         }
-        state.selected?.let { place ->
-            PlaceMapCard(
-                place = place,
-                onOpen = { onOpenPlace(place.id) },
-                onContribute = { onContribute(place) },
-                onClose = onCloseCard,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp).widthIn(max = 560.dp).testTag(MapTags.PLACE_CARD),
-            )
+        // Se recuerda el último lugar para que la tarjeta pueda salir animada después de cerrarla.
+        var shownPlace by remember { mutableStateOf(state.selected) }
+        if (state.selected != null) shownPlace = state.selected
+        AnimatedVisibility(
+            visible = state.selected != null,
+            enter = motion.riseIn(),
+            exit = motion.sinkOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            shownPlace?.let { place ->
+                PlaceMapCard(
+                    place = place,
+                    hazeState = hazeState,
+                    onOpen = { onOpenPlace(place.id) },
+                    onContribute = { onContribute(place) },
+                    onClose = onCloseCard,
+                    modifier = Modifier.padding(12.dp).widthIn(max = 560.dp).testTag(MapTags.PLACE_CARD),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun MapStatus(state: MapUiState, onRetry: () -> Unit, onDismissLocationMessage: () -> Unit) {
+private fun MapStatus(state: MapUiState, hazeState: HazeState?, onRetry: () -> Unit, onDismissLocationMessage: () -> Unit) {
     val message = state.locationMessage
     when {
         message != null -> StatusCard(
@@ -130,13 +161,15 @@ private fun MapStatus(state: MapUiState, onRetry: () -> Unit, onDismissLocationM
             ),
             action = stringResource(R.string.map_ok),
             onAction = onDismissLocationMessage,
+            hazeState = hazeState,
         )
         state.places is LoadState.Error -> StatusCard(
             text = stringResource(state.places.failure.message()),
             action = stringResource(R.string.places_retry),
             onAction = onRetry,
+            hazeState = hazeState,
         )
-        state.places is LoadState.Loading -> Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 3.dp, shadowElevation = 2.dp) {
+        state.places is LoadState.Loading -> Box(Modifier.glassSurface(hazeState, GlassCardShape)) {
             Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                 Text(stringResource(R.string.map_loading), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 8.dp))
@@ -146,16 +179,17 @@ private fun MapStatus(state: MapUiState, onRetry: () -> Unit, onDismissLocationM
             text = stringResource(R.string.map_no_places),
             action = null,
             onAction = {},
+            hazeState = hazeState,
         )
     }
 }
 
 @Composable
-private fun StatusCard(text: String, action: String?, onAction: () -> Unit) {
+private fun StatusCard(text: String, action: String?, onAction: () -> Unit, hazeState: HazeState?) {
     Card(
-        modifier = Modifier.widthIn(max = 480.dp).testTag(MapTags.STATUS),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        modifier = Modifier.widthIn(max = 480.dp).glassSurface(hazeState, GlassCardShape).testTag(MapTags.STATUS),
+        shape = GlassCardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(text, style = MaterialTheme.typography.bodyMedium)
@@ -169,15 +203,16 @@ private fun StatusCard(text: String, action: String?, onAction: () -> Unit) {
 @Composable
 private fun PlaceMapCard(
     place: PlaceSummary,
+    hazeState: HazeState?,
     onOpen: () -> Unit,
     onContribute: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = modifier.fillMaxWidth().glassSurface(hazeState, GlassCardShape),
+        shape = GlassCardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(place.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })

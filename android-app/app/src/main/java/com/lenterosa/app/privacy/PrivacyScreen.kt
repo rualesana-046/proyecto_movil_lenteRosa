@@ -2,14 +2,13 @@ package com.lenterosa.app.privacy
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,14 +18,21 @@ import androidx.compose.ui.unit.dp
 import com.lenterosa.app.R
 import com.lenterosa.app.map.MapConfig
 import com.lenterosa.app.places.BackButton
+import com.lenterosa.app.ui.glass.GlassTopBar
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 /** Aviso de privacidad en lenguaje cotidiano: ubicación, mapa y opiniones (RNF-01, ADR 0009). */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyScreen(onBack: () -> Unit) {
-    Scaffold(topBar = { TopAppBar(title = { }, navigationIcon = { BackButton(onBack) }) }) { padding ->
+    val hazeState = rememberHazeState()
+    Scaffold(topBar = { GlassTopBar(hazeState, navigationIcon = { BackButton(onBack) }) }) { padding ->
         Column(
-            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+            Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 16.dp, bottom = padding.calculateBottomPadding() + 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(

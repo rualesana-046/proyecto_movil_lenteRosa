@@ -2,9 +2,7 @@ package com.lenterosa.app.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,6 +24,9 @@ import com.lenterosa.app.places.PlaceDetailScreen
 import com.lenterosa.app.places.PlaceDetailViewModel
 import com.lenterosa.app.places.PlacesViewModel
 import com.lenterosa.app.privacy.PrivacyScreen
+import com.lenterosa.app.ui.glass.GlassTopBar
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 /** Pantallas de la app. El onboarding (RF-11) se agrega aquí más adelante. */
 sealed interface Destination {
@@ -70,7 +71,6 @@ private val BackStackSaver = Saver<List<Destination>, List<String>>(
 )
 
 // Navegación simple con una pila propia: por ahora son pocas pantallas y no justifica otra dependencia (ADR 0008).
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(requestGoogleIdToken: suspend () -> String) {
     var stack by rememberSaveable(stateSaver = BackStackSaver) { mutableStateOf(listOf<Destination>(Destination.Places)) }
@@ -94,17 +94,16 @@ fun AppNavigation(requestGoogleIdToken: suspend () -> String) {
             onOpenPrivacy = { push(Destination.Privacy) },
         )
         Destination.Privacy -> PrivacyScreen(onBack = pop)
-        Destination.Account -> Scaffold(
-            topBar = {
-                // Sin título en la barra: la pantalla de cuenta ya muestra el suyo.
-                TopAppBar(title = { }, navigationIcon = { BackButton(pop) })
-            },
-        ) { padding ->
-            AccountRoute(
-                viewModel = hiltViewModel<AccountViewModel>(),
-                requestGoogleIdToken = requestGoogleIdToken,
-                modifier = Modifier.padding(padding),
-            )
+        Destination.Account -> {
+            val hazeState = rememberHazeState()
+            // Sin título en la barra: la pantalla de cuenta ya muestra el suyo.
+            Scaffold(topBar = { GlassTopBar(hazeState, navigationIcon = { BackButton(pop) }) }) { padding ->
+                AccountRoute(
+                    viewModel = hiltViewModel<AccountViewModel>(),
+                    requestGoogleIdToken = requestGoogleIdToken,
+                    modifier = Modifier.hazeSource(hazeState).padding(padding),
+                )
+            }
         }
         is Destination.PlaceDetail -> PlaceDetailScreen(
             viewModel = hiltViewModel<PlaceDetailViewModel>(key = "detail-${current.id}"),
