@@ -27,7 +27,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
 | RF-07 | Alertas de cambio | `alerts`: detección de cambios y envío con FCM a quien guardó el lugar | pendiente | — |
 | RF-08 | Modo discreto | App: atajo del ícono, tile de ajustes rápidos, tres acciones con estados reales | pendiente | — |
-| RF-09 | Mapa | App: MapLibre con mosaicos OpenStreetMap y atribución | pendiente | — |
+| RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | en revisión | #12 |
 | RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
 | RF-11 | Onboarding | App: tres pasos al primer uso | pendiente | — |
 
@@ -35,7 +35,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 
 | RNF | Requisito | Cómo se cubre | Estado |
 |---|---|---|---|
-| RNF-01 | Privacidad | Ubicación solo bajo demanda; las coordenadas de búsqueda no se guardan ni se registran (prueba en RF-01) | en curso |
+| RNF-01 | Privacidad | Ubicación solo bajo demanda; las coordenadas de búsqueda no se guardan ni se registran (prueba en RF-01); ubicación aproximada solo con "Cerca de mí" y aviso de privacidad en la app (ADR 0009) | en curso |
 | RNF-02 | Accesibilidad | WCAG AA, contraste verificado, nunca solo color, movimiento reducido | en curso: contraste AA verificado por pruebas y escala de confort con texto e ícono (ADR 0008) |
 | RNF-03 | Diseño | Sistema de diseño en temas claro y oscuro, Plus Jakarta Sans, liquid glass y animaciones fuera del modo discreto | en curso: tokens, tipografía y escala de confort (ADR 0008); faltan liquid glass y animaciones |
 | RNF-04 | Seguridad | Sin secretos en el repositorio; clave de IA solo en la API; tokens validados en la API | en curso |
@@ -56,4 +56,4 @@ El piloto se hace en Pasto (Nariño): los datos ficticios del seed, la demostrac
 
 ## Decisiones pendientes
 
-- **RF-09:** proveedor de mosaicos OpenStreetMap para MapLibre (no el servidor oficial de OSM). Debe decidirse antes de implementar el mapa.
+- Ninguna por ahora. El proveedor de mosaicos de RF-09 se decidió en ADR 0009 (OpenFreeMap, con Stadia Maps como alternativa).
