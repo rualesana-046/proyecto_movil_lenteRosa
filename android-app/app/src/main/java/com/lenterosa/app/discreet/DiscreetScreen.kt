@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -280,6 +281,18 @@ fun DiscreetSettingsScreen(
     onBack: () -> Unit,
 ) {
     var caller by rememberSaveable(settings.fakeCallName) { mutableStateOf(settings.fakeCallName) }
+    // Sin el rosa de la marca: botones y opciones en grises neutros.
+    val buttonColors = ButtonDefaults.buttonColors(
+        containerColor = colors.text,
+        contentColor = colors.background,
+        disabledContainerColor = colors.button,
+        disabledContentColor = colors.secondaryText,
+    )
+    val chipColors = FilterChipDefaults.filterChipColors(
+        labelColor = colors.text,
+        selectedContainerColor = colors.text,
+        selectedLabelColor = colors.background,
+    )
     var contactName by rememberSaveable { mutableStateOf("") }
     var contactPhone by rememberSaveable { mutableStateOf("") }
     CompositionLocalProvider(LocalContentColor provides colors.text) {
@@ -307,10 +320,13 @@ fun DiscreetSettingsScreen(
                         selected = settings.fakeCallDelaySeconds == seconds,
                         onClick = { onSaveFakeCall(caller, seconds) },
                         label = { Text(delayText(seconds)) },
+                        colors = chipColors,
                     )
                 }
             }
-            Button(onClick = { onSaveFakeCall(caller, settings.fakeCallDelaySeconds) }) { Text(stringResource(R.string.discreet_save)) }
+            Button(onClick = { onSaveFakeCall(caller, settings.fakeCallDelaySeconds) }, colors = buttonColors) {
+                Text(stringResource(R.string.discreet_save))
+            }
 
             Text(stringResource(R.string.discreet_contacts), style = MaterialTheme.typography.titleMedium, color = colors.text,
                 modifier = Modifier.semantics { heading() })
@@ -332,6 +348,7 @@ fun DiscreetSettingsScreen(
                         contactPhone = ""
                     },
                     enabled = contactPhone.count { it.isDigit() } >= 7,
+                    colors = buttonColors,
                 ) { Text(stringResource(R.string.discreet_add_contact)) }
             } else {
                 Text(stringResource(R.string.discreet_contacts_full), color = colors.secondaryText)
