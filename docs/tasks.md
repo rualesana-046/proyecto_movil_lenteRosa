@@ -26,9 +26,9 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF-05 | Lugares guardados | `users` (tabla y endpoints, límite de 100), botón de guardar y pestaña Guardados en la app (ADR 0012) | completada | #16 |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
 | RF-07 | Alertas de cambio | `alerts`: detección de cambios en cada opinión, sin avisos en "Pocas opiniones", y novedades dentro de la app (ADR 0012) | completada en la app; el envío por FCM llega con el despliegue | #16 |
-| RF-08 | Modo discreto | App: atajo del ícono, tile neutro «Atajo» y gesto en el título; tres acciones de un toque con estado real y Deshacer; sin cuenta y solo en el teléfono (ADR 0013) | en revisión | #17 |
+| RF-08 | Modo discreto | App: atajo del ícono, tile neutro «Atajo» y gesto en el título; tres acciones de un toque con estado real y Deshacer; sin cuenta y solo en el teléfono (ADR 0013) | completada | #17 |
 | RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | completada | #12 |
-| RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
+| RF-10 | Sin conexión | App: caché Room por 7 días (listas, fichas y guardados por cuenta; «Cerca de mí» solo en memoria), aviso con la antigüedad, Aportar desactivado sin conexión, teselas del mapa hasta 50 MB y «Borrar datos sin conexión» (ADR 0014) | en revisión | — |
 | RF-11 | Onboarding | App: tres pasos al primer uso, con Navigation Compose (ADR 0011) | completada | #15 |
 
 ## Requisitos no funcionales
@@ -74,6 +74,10 @@ Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca
   - enviar la ubicación precisa y aproximada a un contacto de confianza por la app de mensajes;
   - el 123 en el marcador;
   - la métrica de 5 segundos con `DiscreetLaunchTimeTest`: en el emulador con gráficos por hardware la app tarda de 0,6 a 1,1 s; falta medirla en el teléfono.
+- [ ] **Sin conexión en el teléfono** (RF-10, RF-08):
+  - con modo avión, ver la lista, una ficha y Guardados con el aviso «Datos guardados hace…», y que Aportar quede desactivado;
+  - el mapa con las teselas guardadas, y «Borrar datos sin conexión» en «Tu privacidad»;
+  - el Modo discreto con GPS real y sin datos móviles: en el emulador el GPS fue un proveedor de prueba (`DiscreetOfflineTest`).
 
 ## Alcance del piloto: Pasto
 
