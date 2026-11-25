@@ -11,10 +11,17 @@ import org.junit.jupiter.api.Test;
 class ComfortChangeTest {
 
     @Test
-    @DisplayName("Un cambio de etiqueta siempre avisa, también al dejar de tener pocas opiniones")
+    @DisplayName("Con evidencia suficiente, un cambio de etiqueta avisa")
     void labelChangeIsRelevant() {
         assertThat(ComfortChange.isRelevant(new ComfortSnapshot(COMFORTABLE, 66), new ComfortSnapshot(MIXED_OPINIONS, 58))).isTrue();
-        assertThat(ComfortChange.isRelevant(new ComfortSnapshot(FEW_OPINIONS, null), new ComfortSnapshot(COMFORTABLE, 70))).isTrue();
+    }
+
+    @Test
+    @DisplayName("Mientras el lugar esté en Pocas opiniones, antes o después, no hay aviso")
+    void fewOpinionsNeverNotify() {
+        assertThat(ComfortChange.isRelevant(new ComfortSnapshot(FEW_OPINIONS, null), new ComfortSnapshot(COMFORTABLE, 70))).isFalse();
+        assertThat(ComfortChange.isRelevant(new ComfortSnapshot(COMFORTABLE, 70), new ComfortSnapshot(FEW_OPINIONS, 40))).isFalse();
+        assertThat(ComfortChange.isRelevant(new ComfortSnapshot(FEW_OPINIONS, 30), new ComfortSnapshot(FEW_OPINIONS, 80))).isFalse();
     }
 
     @Test
