@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lenterosa.app.R
+import com.lenterosa.app.discreet.DiscreetActivity
 import com.lenterosa.app.map.MapAttribution
 import com.lenterosa.app.map.MapTab
 import com.lenterosa.app.map.MapViewModel
@@ -59,6 +61,7 @@ enum class HomeTab { MAP, LIST, SAVED }
 object HomeTags {
     const val BOTTOM_BAR = "home_bottom_bar"
     const val ALERTS_BADGE = "home_alerts_badge"
+    const val TITLE = "home_title"
 }
 
 /**
@@ -74,6 +77,7 @@ fun HomeScaffold(
     onOpenPrivacy: () -> Unit,
     onOpenAccount: () -> Unit,
     unreadAlerts: Int = 0,
+    onOpenDiscreet: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     content: @Composable (padding: PaddingValues, tab: HomeTab, backdrop: Modifier) -> Unit,
 ) {
@@ -86,7 +90,22 @@ fun HomeScaffold(
         topBar = {
             GlassTopBar(
                 hazeState = barBackdrop,
-                title = { Text(stringResource(R.string.app_name)) },
+                // Gesto para el Modo discreto: mantener presionado el título. Tocarlo no hace nada, así que
+                // no choca con la navegación; TalkBack lo ofrece como acción con nombre.
+                title = {
+                    Text(
+                        stringResource(R.string.app_name),
+                        modifier = Modifier
+                            .testTag(HomeTags.TITLE)
+                            .combinedClickable(
+                                interactionSource = null,
+                                indication = null,
+                                onClick = {},
+                                onLongClickLabel = stringResource(R.string.discreet_open),
+                                onLongClick = onOpenDiscreet,
+                            ),
+                    )
+                },
                 actions = {
                     IconButton(onClick = onOpenPrivacy) {
                         Icon(painterResource(R.drawable.ic_privacy), contentDescription = stringResource(R.string.privacy_title))
@@ -181,7 +200,15 @@ fun HomeScreen(
         }
     }
 
-    HomeScaffold(tab, onTabSelected, onOpenPrivacy, onOpenAccount, unreadAlerts, snackbar) { padding, shownTab, backdrop ->
+    HomeScaffold(
+        tab,
+        onTabSelected,
+        onOpenPrivacy,
+        onOpenAccount,
+        unreadAlerts,
+        onOpenDiscreet = { context.startActivity(DiscreetActivity.intent(context)) },
+        snackbarHostState = snackbar,
+    ) { padding, shownTab, backdrop ->
         when (shownTab) {
             HomeTab.MAP -> MapTab(
                 contentPadding = padding,

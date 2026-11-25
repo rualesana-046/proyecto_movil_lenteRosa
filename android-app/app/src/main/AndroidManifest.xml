@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Solo ubicación aproximada y solo cuando la usuaria toca "Cerca de mí" (RNF-01, ADR 0009). -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Ubicación precisa: solo al tocar "Enviar mi ubicación" en el Modo discreto (RF-08, ADR 0013). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Vibración de la llamada simulada del Modo discreto. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".LenteRosaApplication"
@@ -21,7 +26,37 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Atajo del ícono hacia el Modo discreto. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- Modo discreto (RF-08): nombre neutro, fuera de Recientes, en su propia tarea y sobre la pantalla bloqueada. -->
+        <activity
+            android:name=".discreet.DiscreetActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/discreet_label"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity="com.lenterosa.app.atajo"
+            tools:targetApi="o_mr1" />
+
+        <!-- Tile de ajustes rápidos con nombre e ícono neutros. -->
+        <service
+            android:name=".discreet.DiscreetTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_shortcut_neutral"
+            android:label="@string/discreet_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="false" />
+        </service>
     </application>
 
 </manifest>

@@ -63,7 +63,10 @@ fun PlacesMap(
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val currentOnSelect by rememberUpdatedState(onSelect)
     val currentOnCameraIdle by rememberUpdatedState(onCameraIdle)
-    val mapView = remember { MapView(context) }
+    val mapView = remember {
+        MapConfig.initialize(context)
+        MapView(context)
+    }
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
     var style by remember { mutableStateOf<Style?>(null) }
 

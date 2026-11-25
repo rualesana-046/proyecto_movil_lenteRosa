@@ -18,6 +18,8 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        // Pruebas instrumentadas (en el emulador o un teléfono), por ejemplo el tiempo de apertura del Modo discreto.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Mapa (RF-09, ADR 0009): OpenFreeMap por defecto, sin clave. Se puede cambiar de proveedor
         // (por ejemplo Stadia Maps) con propiedades de Gradle, sin tocar el código; la atribución
@@ -115,6 +117,12 @@ dependencies {
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }
 
 // En el CI, ROBOLECTRIC_DEPS_DIR apunta a la carpeta que el flujo descarga y guarda en caché; en

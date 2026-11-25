@@ -26,8 +26,18 @@ object MapConfig {
      */
     val userAgent: String = "LenteRosa/${BuildConfig.VERSION_NAME} (Android; +https://github.com/rualesana-046/proyecto_movil_lenteRosa)"
 
-    /** Inicializa MapLibre una sola vez, con el User-Agent propio en todas sus descargas. */
+    @Volatile
+    private var initialized = false
+
+    /**
+     * Inicializa MapLibre una sola vez, con el User-Agent propio en todas sus descargas. Se llama
+     * al mostrar el mapa por primera vez, no al abrir la app: así el Modo discreto (RF-08), que se
+     * abre desde el tile o el atajo, no paga el arranque del mapa.
+     */
+    @Synchronized
     fun initialize(context: Context) {
+        if (initialized) return
+        initialized = true
         MapLibre.getInstance(context.applicationContext)
         HttpRequestUtil.setOkHttpClient(
             OkHttpClient.Builder()
