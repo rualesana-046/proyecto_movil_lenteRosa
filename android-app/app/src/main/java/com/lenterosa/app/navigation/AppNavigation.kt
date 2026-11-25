@@ -33,6 +33,7 @@ import com.lenterosa.app.places.ContributeViewModel
 import com.lenterosa.app.places.PlaceDetailScreen
 import com.lenterosa.app.places.PlaceDetailViewModel
 import com.lenterosa.app.places.PlacesViewModel
+import com.lenterosa.app.offline.OfflineDataViewModel
 import com.lenterosa.app.privacy.PrivacyScreen
 import com.lenterosa.app.saved.SavedViewModel
 import com.lenterosa.app.ui.glass.GlassTopBar
@@ -114,7 +115,9 @@ fun AppNavigation(
                 onOpenPrivacy = { navController.navigate(Routes.Privacy) },
             )
         }
-        composable<Routes.Privacy> { PrivacyScreen(onBack = { navController.popBackStack() }) }
+        composable<Routes.Privacy> {
+            PrivacyScreen(onBack = { navController.popBackStack() }, offlineData = hiltViewModel<OfflineDataViewModel>())
+        }
         composable<Routes.Account> {
             val hazeState = rememberHazeState()
             // Sin título en la barra: la pantalla de cuenta ya muestra el suyo.
