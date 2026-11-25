@@ -1,7 +1,7 @@
 # ADR 0014 — Sin conexión (RF-10)
 
 - **Estado:** aceptado
-- **PR:** pendiente
+- **PR:** #18
 - **Decide:** AM (privacidad: qué se guarda, cuánto tiempo y cómo se borra; Aportar sin conexión); el agente (diseño técnico)
 
 ## Contexto
