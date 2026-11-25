@@ -9,11 +9,11 @@ El alcance obligatorio no se recorta. El estado de cada requisito está en [`tas
 | ID | Requisito | Criterio de aceptación |
 |---|---|---|
 | RF-01 | Consulta como invitada | Una invitada busca y ve lugares con su índice sin iniciar sesión. |
-| RF-02 | Cuentas | Registro e inicio de sesión con correo o Google (Firebase Auth). Guardar, valorar y recibir alertas exige cuenta. |
+| RF-02 | Cuentas | Registro e inicio de sesión con correo o Google (Firebase Auth). Guardar, valorar y recibir alertas exige cuenta. Solo para mayores de 18: se confirma al crear la cuenta (ADR 0015). |
 | RF-03 | Índice de Confort 0–100 | Promedio bayesiano con peso por recencia. Muestra etiqueta, cantidad de opiniones, antigüedad e incertidumbre. La fórmula vive solo en la API y es verificable. |
 | RF-04 | Aportar opinión | Una usuaria autenticada valora un lugar; la opinión se muestra anónima a otras usuarias. Hay un límite contra abuso. |
 | RF-05 | Lugares guardados | Una usuaria autenticada guarda y quita lugares. |
-| RF-06 | Cápsula de IA | Gemini Flash, llamado solo desde la API, resume comentarios reales y separa hechos, opiniones e incertidumbre en lenguaje cotidiano. Si la IA falla o se agota la cuota, se usan plantillas de respaldo. |
+| RF-06 | Cápsula de IA | Gemini Flash, llamado solo desde la API, resume comentarios reales y separa hechos, opiniones e incertidumbre en lenguaje cotidiano. Si la IA falla o se agota la cuota, se usan plantillas de respaldo. Plan gratuito solo en el piloto académico, con envío mínimo y limpieza de datos personales (ADR 0015). |
 | RF-07 | Alertas de cambio | Cuando una nueva opinión cambia de forma relevante un lugar guardado, quien lo guardó recibe un aviso por FCM. Reacciona a cada opinión, sin procesos programados. |
 | RF-08 | Modo discreto | Se abre con un atajo del ícono y con un tile de ajustes rápidos. Pantalla gris con tres acciones: enviar ubicación, llamada simulada y marcar ruta incómoda. Cada acción informa su estado real. |
 | RF-09 | Mapa | MapLibre con mosaicos OpenStreetMap de un proveedor que lo permita (no el servidor oficial de OSM), con atribución visible. |

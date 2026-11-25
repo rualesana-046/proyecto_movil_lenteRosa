@@ -106,7 +106,7 @@ El repositorio es **público**. Ningún secreto entra nunca al historial.
 Costo esperado: USD 0 al mes.
 
 - Cloud Run (proyecto `lente-rosa-api`) es el único servicio con tarjeta: mínimo 0 y máximo 2 instancias, cobro por solicitud y alerta de presupuesto en USD 1. La alerta avisa, no frena.
-- Firebase (`lente-rosa-app`) en plan Spark, sin facturación. Gemini Flash en capa gratuita, con plantillas de respaldo si se agota.
+- Firebase (`lente-rosa-app`) en plan Spark, sin facturación. Gemini Flash en capa gratuita solo para el piloto académico (ADR 0015; clave en `lente-rosa-app`, nunca en un proyecto con facturación), con plantillas de respaldo si se agota.
 - Neon y GitHub Actions en planes gratuitos.
 - El despliegue usa Workload Identity Federation, sin claves permanentes.
 - Ningún proyecto, facturación ni despliegue se crea sin autorización de AM.
