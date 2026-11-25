@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -33,7 +34,11 @@ import com.lenterosa.app.places.placeSummary
 import com.lenterosa.app.places.repository
 import com.lenterosa.app.places.review
 import com.lenterosa.app.places.session
+import com.lenterosa.app.privacy.PrivacyScreen
+import com.lenterosa.app.privacy.PrivacyTags
 import com.lenterosa.app.ui.theme.LenteRosaTheme
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.builtins.serializer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -42,7 +47,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** RF-10 en pantalla: aviso de datos guardados y Aportar sin conexión. */
+/** RF-10 en pantalla: aviso de datos guardados, Aportar sin conexión y borrado de datos. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = android.app.Application::class)
 class OfflineUiTest {
@@ -146,6 +151,22 @@ class OfflineUiTest {
 
         compose.onNodeWithTag(ContributeTags.OFFLINE).assertDoesNotExist()
         compose.onNodeWithTag(ContributeTags.SUBMIT).assertIsEnabled()
+    }
+
+    @Test
+    fun `Borrar datos sin conexión vacía la caché y las teselas del mapa`() = runTest {
+        val cache = FakeOfflineCache()
+        cache.put(OfflineCache.placeKey("p1"), String.serializer(), "ficha")
+        var mapCleared = 0
+        val viewModel = OfflineDataViewModel(cache) { mapCleared++; true }
+        compose.setContent { LenteRosaTheme { PrivacyScreen(onBack = {}, offlineData = viewModel) } }
+
+        compose.onNodeWithTag(PrivacyTags.CLEAR_OFFLINE).performScrollTo().performClick()
+        compose.waitForIdle()
+
+        assertTrue(cache.entries.isEmpty())
+        assertEquals(1, mapCleared)
+        compose.onNodeWithText(context.getString(R.string.offline_cleared)).assertExists()
     }
 
     private fun scrollList(target: SemanticsMatcher) {

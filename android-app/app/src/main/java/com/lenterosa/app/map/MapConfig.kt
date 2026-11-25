@@ -5,6 +5,7 @@ import com.lenterosa.app.BuildConfig
 import okhttp3.OkHttpClient
 import org.maplibre.android.MapLibre
 import org.maplibre.android.module.http.HttpRequestUtil
+import org.maplibre.android.offline.OfflineManager
 
 /**
  * Proveedor del mapa (RF-09, ADR 0009). Los valores salen de BuildConfig para poder cambiar de
@@ -25,6 +26,9 @@ object MapConfig {
      * OpenFreeMap. No incluye ningún dato de la usuaria ni del dispositivo.
      */
     val userAgent: String = "LenteRosa/${BuildConfig.VERSION_NAME} (Android; +https://github.com/rualesana-046/proyecto_movil_lenteRosa)"
+
+    /** Tamaño máximo de las teselas guardadas para usar sin conexión. */
+    const val AMBIENT_CACHE_BYTES = 50L * 1024 * 1024
 
     @Volatile
     private var initialized = false
@@ -48,5 +52,11 @@ object MapConfig {
         )
         // Sin registro de las URL de las teselas: revelarían qué zonas se miran.
         HttpRequestUtil.setLogEnabled(false)
+        // Las teselas vistas se guardan para usar sin conexión, hasta 50 MB (RF-10, ADR 0014).
+        OfflineManager.getInstance(context.applicationContext)
+            .setMaximumAmbientCacheSize(AMBIENT_CACHE_BYTES, object : OfflineManager.FileSourceCallback {
+                override fun onSuccess() = Unit
+                override fun onError(message: String) = Unit
+            })
     }
 }

@@ -266,4 +266,8 @@
         <item quantity="other">hace %1$d días</item>
     </plurals>
     <string name="offline_contribute_needs_connection">Necesitas conexión para enviar tu opinión.</string>
+    <string name="offline_clear_title">Datos guardados para usar sin conexión</string>
+    <string name="offline_clear_body">Lente Rosa guarda por 7 días los lugares y fichas que viste y la zona del mapa que miraste, para que puedas verlos sin conexión. No guarda tu ubicación. Puedes borrarlos cuando quieras.</string>
+    <string name="offline_clear_button">Borrar datos sin conexión</string>
+    <string name="offline_cleared">Listo: borramos los datos guardados en tu teléfono.</string>
 </resources>

@@ -25,6 +25,8 @@ import com.lenterosa.app.offline.AndroidConnectivity
 import com.lenterosa.app.offline.CacheDao
 import com.lenterosa.app.offline.CacheDatabase
 import com.lenterosa.app.offline.Connectivity
+import com.lenterosa.app.offline.MapCacheCleaner
+import com.lenterosa.app.offline.MapLibreCacheCleaner
 import com.lenterosa.app.offline.OfflineCache
 import com.lenterosa.app.offline.RoomOfflineCache
 import com.lenterosa.app.onboarding.DataStoreOnboardingStore
@@ -122,6 +124,9 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun offlineCache(implementation: RoomOfflineCache): OfflineCache
+
+    @Binds
+    abstract fun mapCacheCleaner(implementation: MapLibreCacheCleaner): MapCacheCleaner
 
     @Binds
     abstract fun connectivity(implementation: AndroidConnectivity): Connectivity
