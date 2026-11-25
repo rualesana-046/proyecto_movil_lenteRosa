@@ -2,6 +2,7 @@ package com.lenterosa.app.discreet
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,13 +38,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,6 +69,7 @@ object DiscreetTags {
     const val MARK = "discreet_mark"
     const val UNDO = "discreet_undo"
     const val STATUS = "discreet_status"
+    const val EMERGENCY = "discreet_emergency"
 }
 
 /** Pantalla gris con las tres acciones de un toque. */
@@ -92,26 +96,37 @@ fun DiscreetScreen(
                         Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.discreet_settings))
                     }
                 }
-                Spacer(Modifier.weight(0.3f))
-                ActionButton(R.drawable.ic_send_location, stringResource(R.string.discreet_send), sendSubtitle(state), colors,
-                    DiscreetTags.SEND, onSendLocation, busy = state.preparingLocation)
-                ActionButton(R.drawable.ic_phone, stringResource(R.string.discreet_fake_call),
-                    stringResource(R.string.discreet_fake_call_hint, state.settings.fakeCallName, delayText(state.settings.fakeCallDelaySeconds)),
-                    colors, DiscreetTags.FAKE_CALL, onFakeCall)
-                ActionButton(R.drawable.ic_flag, stringResource(R.string.discreet_mark), stringResource(R.string.discreet_mark_hint),
-                    colors, DiscreetTags.MARK, onMark)
-                Spacer(Modifier.weight(1f))
+                // Las acciones se desplazan si falta espacio; la parte de abajo (estado, Deshacer y 123)
+                // queda fija y siempre visible, también en pantallas pequeñas o con texto grande.
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
+                ) {
+                    ActionButton(R.drawable.ic_send_location, stringResource(R.string.discreet_send), sendSubtitle(state), colors,
+                        DiscreetTags.SEND, onSendLocation, busy = state.preparingLocation)
+                    ActionButton(R.drawable.ic_phone, stringResource(R.string.discreet_fake_call),
+                        stringResource(R.string.discreet_fake_call_hint, state.settings.fakeCallName, delayText(state.settings.fakeCallDelaySeconds)),
+                        colors, DiscreetTags.FAKE_CALL, onFakeCall)
+                    ActionButton(R.drawable.ic_flag, stringResource(R.string.discreet_mark), stringResource(R.string.discreet_mark_hint),
+                        colors, DiscreetTags.MARK, onMark)
+                }
                 state.sendStatus?.let { StatusText(it, colors, onDismissStatus) }
-                (state.call as? FakeCall.Scheduled)?.let {
-                    Text(stringResource(R.string.discreet_call_in, it.secondsLeft), color = colors.secondaryText,
+                val scheduled = state.call as? FakeCall.Scheduled
+                // El aviso con Deshacer va en el flujo, nunca encima del acceso al 123. Mientras está
+                // visible, muestra la cuenta regresiva; después, la cuenta sigue como texto.
+                val undo = state.undo
+                if (undo != null) {
+                    UndoBar(undo, scheduled?.secondsLeft, colors, onUndo)
+                } else if (scheduled != null) {
+                    Text(stringResource(R.string.discreet_call_in, scheduled.secondsLeft), color = colors.secondaryText,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                 }
-                TextButton(onClick = onCallEmergency, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                TextButton(
+                    onClick = onCallEmergency,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).testTag(DiscreetTags.EMERGENCY),
+                ) {
                     Text(stringResource(R.string.discreet_emergency), color = colors.text, textAlign = TextAlign.Center)
                 }
-            }
-            state.undo?.let { offer ->
-                UndoBar(offer, colors, onUndo, Modifier.align(Alignment.BottomCenter).padding(16.dp))
             }
         }
     }
@@ -180,12 +195,12 @@ private fun StatusText(status: SendStatus, colors: DiscreetColors, onDismiss: ()
 
 /** Aviso con "Deshacer" durante 5 segundos. */
 @Composable
-private fun UndoBar(offer: UndoOffer, colors: DiscreetColors, onUndo: () -> Unit, modifier: Modifier = Modifier) {
+private fun UndoBar(offer: UndoOffer, secondsLeft: Int?, colors: DiscreetColors, onUndo: () -> Unit, modifier: Modifier = Modifier) {
     val text = when (offer) {
-        is UndoOffer.Call -> if (offer.delaySeconds == 0) {
+        is UndoOffer.Call -> if (secondsLeft == null) {
             stringResource(R.string.discreet_undo_call_now)
         } else {
-            stringResource(R.string.discreet_undo_call, offer.delaySeconds)
+            stringResource(R.string.discreet_undo_call, secondsLeft)
         }
         is UndoOffer.Mark -> stringResource(if (offer.withLocation) R.string.discreet_undo_mark else R.string.discreet_undo_mark_no_location)
     }
@@ -235,11 +250,20 @@ fun FakeCallScreen(call: FakeCall, onAnswer: () -> Unit, onHangUp: () -> Unit) {
     }
 }
 
+/** Botón redondo de la llamada: el círculo y su texto se tocan como un solo botón. */
 @Composable
 private fun RoundCallButton(label: String, color: Color, @DrawableRes icon: Int, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        IconButton(onClick = onClick, modifier = Modifier.size(72.dp).background(color, CircleShape)) {
-            Icon(painterResource(icon), contentDescription = label, tint = Color.White, modifier = Modifier.size(32.dp))
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(8.dp)
+            .testTag("llamada_" + label),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(Modifier.size(72.dp).background(color, CircleShape), contentAlignment = Alignment.Center) {
+            Icon(painterResource(icon), contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
         }
         Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge)
     }
