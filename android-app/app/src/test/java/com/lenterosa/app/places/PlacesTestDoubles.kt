@@ -96,7 +96,11 @@ internal fun httpError(code: Int, body: String = "", headers: Map<String, String
     return HttpException(response)
 }
 
-internal fun repository(api: PlacesApi, auth: AuthGateway = FakeSessionGateway(), hasInternet: Boolean = true) =
-    PlacesRepository(api, auth, { hasInternet }, Json { ignoreUnknownKeys = true })
+internal fun repository(
+    api: PlacesApi,
+    auth: AuthGateway = FakeSessionGateway(),
+    hasInternet: Boolean = true,
+    cache: com.lenterosa.app.offline.OfflineCache = com.lenterosa.app.offline.FakeOfflineCache(),
+) = PlacesRepository(api, auth, { hasInternet }, Json { ignoreUnknownKeys = true }, cache)
 
 internal fun offline() = IOException("sin red")

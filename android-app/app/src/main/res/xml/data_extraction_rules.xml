@@ -3,7 +3,8 @@
   Android 12 o superior (TD-03, ADR 0013): nada de la app sale del teléfono, ni en la copia de seguridad en
   la nube ni en la transferencia a otro dispositivo. Incluye los datos del Modo discreto (contactos de
   confianza, marcas y ajustes, en files/datastore), la sesión y los tokens de Firebase (shared_prefs) y la
-  caché del mapa (files/mbgl-offline.db, revela las zonas que se miraron). allowBackup="false" no basta:
+  caché del mapa (files/mbgl-offline.db, revela las zonas que se miraron) y la caché sin conexión
+  (databases/cache_sin_conexion.db, RF-10). allowBackup="false" no basta:
   desde Android 12 no impide la transferencia entre dispositivos.
 -->
 <data-extraction-rules>

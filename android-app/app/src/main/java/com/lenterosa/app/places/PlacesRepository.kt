@@ -6,11 +6,15 @@ import com.lenterosa.app.account.AuthException
 import com.lenterosa.app.account.AuthFailure
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.offline.OfflineCache
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 
@@ -30,11 +34,16 @@ object PilotArea {
 enum class LoadFailure { NETWORK, SERVER_UNREACHABLE, NOT_FOUND, SERVER }
 
 sealed interface Loaded<out T> {
-    data class Success<T>(val value: T) : Loaded<T>
+    /**
+     * Datos listos. Si vienen de la caché sin conexión (RF-10), `cachedAtMillis` dice cuándo se
+     * guardaron y `staleBecause` por qué no se pudieron actualizar; la pantalla lo muestra siempre.
+     */
+    data class Success<T>(val value: T, val cachedAtMillis: Long? = null, val staleBecause: LoadFailure? = null) : Loaded<T>
     data class Failed(val failure: LoadFailure) : Loaded<Nothing>
 }
 
 /** Ficha de un lugar con sus opiniones más recientes. */
+@Serializable
 data class PlaceWithReviews(val place: PlaceDetail, val reviews: List<Review>)
 
 /** Resultado de aportar una opinión (RF-04). */
@@ -62,18 +71,33 @@ class PlacesRepository @Inject constructor(
     private val auth: AuthGateway,
     private val network: NetworkStatus,
     private val json: Json,
+    private val cache: OfflineCache,
 ) {
 
-    suspend fun nearby(center: GeoPoint, query: String?, radiusMeters: Int = PilotArea.RADIUS_METERS): Loaded<List<PlaceSummary>> =
-        load { api.nearby(center.lat, center.lng, radiusMeters, query?.trim()?.takeIf { it.isNotEmpty() }).items }
-
-    suspend fun placeWithReviews(id: String): Loaded<PlaceWithReviews> = load {
-        coroutineScope {
-            val place = async { api.detail(id) }
-            val reviews = async { api.reviews(id).items }
-            PlaceWithReviews(place.await(), reviews.await())
+    /**
+     * Lugares alrededor de un punto. Con `cacheable = false` (resultados de "Cerca de mí") nunca se
+     * guardan en el teléfono ni se leen de la caché: dejarían rastro de dónde estaba la usuaria.
+     */
+    suspend fun nearby(
+        center: GeoPoint,
+        query: String?,
+        radiusMeters: Int = PilotArea.RADIUS_METERS,
+        cacheable: Boolean = true,
+    ): Loaded<List<PlaceSummary>> {
+        val key = OfflineCache.listKey(center.lat, center.lng, radiusMeters, query).takeIf { cacheable }
+        return load(key, ListSerializer(PlaceSummary.serializer())) {
+            api.nearby(center.lat, center.lng, radiusMeters, query?.trim()?.takeIf { it.isNotEmpty() }).items
         }
     }
+
+    suspend fun placeWithReviews(id: String): Loaded<PlaceWithReviews> =
+        load(OfflineCache.placeKey(id), PlaceWithReviews.serializer()) {
+            coroutineScope {
+                val place = async { api.detail(id) }
+                val reviews = async { api.reviews(id).items }
+                PlaceWithReviews(place.await(), reviews.await())
+            }
+        }
 
     suspend fun contribute(placeId: String, draft: ReviewDraft): ContributionResult {
         if (auth.session.value == null) {
@@ -108,12 +132,26 @@ class PlacesRepository @Inject constructor(
         }
     }
 
-    private suspend fun <T> load(block: suspend () -> T): Loaded<T> = try {
-        Loaded.Success(block())
-    } catch (e: HttpException) {
-        Loaded.Failed(if (e.code() == 404) LoadFailure.NOT_FOUND else LoadFailure.SERVER)
-    } catch (e: IOException) {
-        Loaded.Failed(networkFailure(e))
+    /**
+     * Carga desde la API y guarda el resultado en la caché. Si la API no responde (sin conexión o
+     * error del servidor), devuelve lo guardado con su fecha. Un 404 borra lo guardado.
+     */
+    private suspend fun <T> load(key: String?, serializer: KSerializer<T>, block: suspend () -> T): Loaded<T> {
+        val failure = try {
+            val value = block()
+            key?.let { cache.put(it, serializer, value) }
+            return Loaded.Success(value)
+        } catch (e: HttpException) {
+            if (e.code() == 404) {
+                key?.let { cache.remove(it) }
+                return Loaded.Failed(LoadFailure.NOT_FOUND)
+            }
+            LoadFailure.SERVER
+        } catch (e: IOException) {
+            networkFailure(e)
+        }
+        val cached = key?.let { cache.get(it, serializer) } ?: return Loaded.Failed(failure)
+        return Loaded.Success(cached.value, cachedAtMillis = cached.savedAtMillis, staleBecause = failure)
     }
 
     // Sin internet es un problema del teléfono; con internet, es que Lente Rosa no respondió.

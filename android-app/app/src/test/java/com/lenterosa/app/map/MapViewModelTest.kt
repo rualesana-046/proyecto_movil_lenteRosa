@@ -45,6 +45,7 @@ class MapViewModelTest {
         { locationRequests++; locationResult },
         FakeSessionGateway(),
         com.lenterosa.app.saved.store(),
+        com.lenterosa.app.offline.FakeConnectivity(),
     )
 
     @Test

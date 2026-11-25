@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -46,6 +47,10 @@ import com.lenterosa.app.ui.glass.GlassTopBar
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
+object DetailTags {
+    const val CONTRIBUTE = "detail_contribute"
+}
+
 /** Ficha del lugar: índice, promedios por dimensión y opiniones recientes (RF-01, RF-03). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +67,7 @@ fun PlaceDetailScreen(
     val state by viewModel.place.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
     val savedIds by viewModel.savedIds.collectAsStateWithLifecycle()
+    val online by viewModel.online.collectAsStateWithLifecycle()
     val saveMessage by viewModel.saveMessage.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val messageText = saveMessage?.let { saveResultMessage(it) }
@@ -89,19 +95,23 @@ fun PlaceDetailScreen(
                 is LoadState.Error -> Column(Modifier.padding(padding)) {
                     Centered { LoadErrorMessage(current.failure, onRetry = viewModel::retry) }
                 }
-                is LoadState.Ready -> PlaceDetailContent(current.value, session, padding, onContribute, onOpenAccount)
+                is LoadState.Ready -> PlaceDetailContent(current.value, current.stale, online, session, padding, onContribute,
+                    onOpenAccount, onRetry = viewModel::retry)
             }
         }
     }
 }
 
 @Composable
-private fun PlaceDetailContent(
+internal fun PlaceDetailContent(
     data: PlaceWithReviews,
+    stale: Staleness?,
+    online: Boolean,
     session: Session?,
     padding: PaddingValues,
     onContribute: (id: String, name: String) -> Unit,
     onOpenAccount: () -> Unit,
+    onRetry: () -> Unit,
 ) {
     val place = data.place
     // La lista pasa por detrás de la barra de vidrio; el relleno deja libre su espacio.
@@ -114,6 +124,7 @@ private fun PlaceDetailContent(
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        stale?.let { item { StaleBanner(it, onRetry = onRetry) } }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(place.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
@@ -126,7 +137,7 @@ private fun PlaceDetailContent(
         }
         item { ComfortSection(place) }
         item { AveragesSection(place) }
-        item { ContributeAction(place, session, onContribute, onOpenAccount) }
+        item { ContributeAction(place, session, online, onContribute, onOpenAccount) }
         item {
             Text(
                 text = stringResource(R.string.detail_recent_reviews),
@@ -203,11 +214,19 @@ private fun AverageRow(label: Int, value: Double?) {
 private fun ContributeAction(
     place: PlaceDetail,
     session: Session?,
+    online: Boolean,
     onContribute: (id: String, name: String) -> Unit,
     onOpenAccount: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when {
+            // Sin conexión no se puede opinar: las opiniones no se guardan para enviarlas después.
+            !online -> {
+                Text(stringResource(R.string.offline_contribute_needs_connection), style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().testTag(DetailTags.CONTRIBUTE)) {
+                    Text(stringResource(R.string.detail_contribute))
+                }
+            }
             session == null -> {
                 Text(stringResource(R.string.detail_sign_in_to_contribute), style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(onClick = onOpenAccount, modifier = Modifier.fillMaxWidth()) {
@@ -220,7 +239,7 @@ private fun ContributeAction(
                     Text(stringResource(R.string.detail_go_to_account))
                 }
             }
-            else -> Button(onClick = { onContribute(place.id, place.name) }, modifier = Modifier.fillMaxWidth()) {
+            else -> Button(onClick = { onContribute(place.id, place.name) }, modifier = Modifier.fillMaxWidth().testTag(DetailTags.CONTRIBUTE)) {
                 Text(stringResource(R.string.detail_contribute))
             }
         }

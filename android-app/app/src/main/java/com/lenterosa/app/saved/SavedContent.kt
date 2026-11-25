@@ -36,6 +36,7 @@ import com.lenterosa.app.places.Centered
 import com.lenterosa.app.places.LoadErrorMessage
 import com.lenterosa.app.places.PlaceDetail
 import com.lenterosa.app.places.PlaceFormat
+import com.lenterosa.app.places.StaleBanner
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
 
@@ -86,6 +87,7 @@ fun SavedList(
             }
             is SavedLoad.Failed -> item { Centered { LoadErrorMessage(state.failure, onRetry = onRetry) } }
             is SavedLoad.Ready -> {
+                state.stale?.let { stale -> item { StaleBanner(stale, onRetry = onRetry) } }
                 val names = state.overview.places.associate { it.id to it.name }
                 if (state.overview.inbox.items.isNotEmpty()) {
                     item { SectionTitle(R.string.saved_alerts_title) }

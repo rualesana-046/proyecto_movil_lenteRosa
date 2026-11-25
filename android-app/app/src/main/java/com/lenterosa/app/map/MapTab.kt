@@ -47,8 +47,9 @@ import com.lenterosa.app.R
 import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.PlaceFormat
 import com.lenterosa.app.places.PlaceSummary
-import com.lenterosa.app.saved.SaveButton
+import com.lenterosa.app.places.StaleBanner
 import com.lenterosa.app.places.message
+import com.lenterosa.app.saved.SaveButton
 import com.lenterosa.app.ui.comfort.ComfortBadge
 import com.lenterosa.app.ui.comfort.ComfortLevel
 import com.lenterosa.app.ui.glass.GlassCardShape
@@ -86,6 +87,7 @@ fun MapTab(
     modifier: Modifier = Modifier,
     savedIds: Set<String> = emptySet(),
     onToggleSaved: (PlaceSummary) -> Unit = {},
+    online: Boolean = true,
 ) {
     // Sin desenfoque sobre el mapa (su vista nativa no se puede capturar): las tarjetas usan el tinte.
     val hazeState: HazeState? = null
@@ -140,6 +142,7 @@ fun MapTab(
                 PlaceMapCard(
                     place = place,
                     saved = place.id in savedIds,
+                    online = online,
                     onToggleSaved = { onToggleSaved(place) },
                     hazeState = hazeState,
                     onOpen = { onOpenPlace(place.id) },
@@ -180,6 +183,8 @@ private fun MapStatus(state: MapUiState, hazeState: HazeState?, onRetry: () -> U
                 Text(stringResource(R.string.map_loading), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 8.dp))
             }
         }
+        state.places is LoadState.Ready && state.places.stale != null ->
+            StaleBanner(state.places.stale, onRetry = onRetry, modifier = Modifier.widthIn(max = 480.dp))
         state.places is LoadState.Ready && state.places.value.isEmpty() -> StatusCard(
             text = stringResource(R.string.map_no_places),
             action = null,
@@ -206,9 +211,10 @@ private fun StatusCard(text: String, action: String?, onAction: () -> Unit, haze
 }
 
 @Composable
-private fun PlaceMapCard(
+internal fun PlaceMapCard(
     place: PlaceSummary,
     saved: Boolean,
+    online: Boolean,
     onToggleSaved: () -> Unit,
     hazeState: HazeState?,
     onOpen: () -> Unit,
@@ -240,9 +246,14 @@ private fun PlaceMapCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             ComfortBadge(ComfortLevel.fromCode(place.comfortLabel), place.comfortIndex)
+            if (!online) {
+                Text(stringResource(R.string.offline_contribute_needs_connection), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = onOpen) { Text(stringResource(R.string.map_open_place)) }
-                OutlinedButton(onClick = onContribute, modifier = Modifier.testTag(MapTags.CONTRIBUTE)) {
+                // Sin conexión, Aportar queda desactivado y se explica por qué.
+                OutlinedButton(onClick = onContribute, enabled = online, modifier = Modifier.testTag(MapTags.CONTRIBUTE)) {
                     Text(stringResource(R.string.map_contribute))
                 }
                 TextButton(onClick = onClose, colors = ButtonDefaults.textButtonColors()) { Text(stringResource(R.string.map_close)) }

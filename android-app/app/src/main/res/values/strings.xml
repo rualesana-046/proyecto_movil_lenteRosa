@@ -245,4 +245,25 @@
     <string name="discreet_add_contact">Agregar contacto</string>
     <string name="discreet_remove">Quitar</string>
     <string name="discreet_contacts_full">Ya tienes 3 contactos de confianza.</string>
+    <!-- Sin conexión (RF-10) -->
+    <string name="offline_saved_ago">Datos guardados %1$s · %2$s</string>
+    <string name="offline_reason_network">Sin conexión</string>
+    <string name="offline_reason_server">No pudimos actualizar</string>
+    <string name="offline_age_moment">hace un momento</string>
+    <plurals name="offline_age_minutes">
+        <item quantity="one">hace %1$d minuto</item>
+        <item quantity="many">hace %1$d minutos</item>
+        <item quantity="other">hace %1$d minutos</item>
+    </plurals>
+    <plurals name="offline_age_hours">
+        <item quantity="one">hace %1$d hora</item>
+        <item quantity="many">hace %1$d horas</item>
+        <item quantity="other">hace %1$d horas</item>
+    </plurals>
+    <plurals name="offline_age_days">
+        <item quantity="one">hace %1$d día</item>
+        <item quantity="many">hace %1$d días</item>
+        <item quantity="other">hace %1$d días</item>
+    </plurals>
+    <string name="offline_contribute_needs_connection">Necesitas conexión para enviar tu opinión.</string>
 </resources>

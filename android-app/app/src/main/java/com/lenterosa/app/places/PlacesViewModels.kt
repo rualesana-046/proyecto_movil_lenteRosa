@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.Session
+import com.lenterosa.app.offline.Connectivity
 import com.lenterosa.app.saved.SaveResult
 import com.lenterosa.app.saved.SavedPlacesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,12 +18,17 @@ import kotlinx.coroutines.launch
 /** Estado de una carga desde la API. */
 sealed interface LoadState<out T> {
     data object Loading : LoadState<Nothing>
-    data class Ready<T>(val value: T) : LoadState<T>
+
+    /** `stale` no es nulo si los datos vienen de la caché sin conexión (RF-10). */
+    data class Ready<T>(val value: T, val stale: Staleness? = null) : LoadState<T>
     data class Error(val failure: LoadFailure) : LoadState<Nothing>
 }
 
-private fun <T> Loaded<T>.toState(): LoadState<T> = when (this) {
-    is Loaded.Success -> LoadState.Ready(value)
+/** Cuándo se guardaron los datos y por qué no se pudieron actualizar. */
+data class Staleness(val savedAtMillis: Long, val reason: LoadFailure)
+
+fun <T> Loaded<T>.toState(): LoadState<T> = when (this) {
+    is Loaded.Success -> LoadState.Ready(value, cachedAtMillis?.let { Staleness(it, staleBecause ?: LoadFailure.NETWORK) })
     is Loaded.Failed -> LoadState.Error(failure)
 }
 
@@ -57,7 +63,11 @@ class PlaceDetailViewModel @Inject constructor(
     private val repository: PlacesRepository,
     auth: AuthGateway,
     private val saved: SavedPlacesStore,
+    connectivity: Connectivity,
 ) : ViewModel() {
+
+    /** Sin conexión, Aportar queda desactivado (RF-10). */
+    val online: StateFlow<Boolean> = connectivity.online
 
     val savedIds: StateFlow<Set<String>> = saved.savedIds
 

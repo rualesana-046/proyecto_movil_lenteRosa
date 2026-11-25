@@ -86,7 +86,7 @@ fun PlacesContent(
         when (val places = state.places) {
             LoadState.Loading -> item { Centered { CircularProgressIndicator() } }
             is LoadState.Error -> item { Centered { LoadErrorMessage(places.failure, onRetry = viewModel::search) } }
-            is LoadState.Ready -> if (places.value.isEmpty()) {
+            is LoadState.Ready -> if (places.value.isEmpty() && places.stale == null) {
                 item {
                     Centered {
                         Text(
@@ -96,6 +96,7 @@ fun PlacesContent(
                     }
                 }
             } else {
+                places.stale?.let { stale -> item { StaleBanner(stale, onRetry = viewModel::search) } }
                 items(places.value, key = { it.id }) { place ->
                     PlaceCard(place, onClick = { onOpenPlace(place.id) }, modifier = Modifier.animateItem())
                 }

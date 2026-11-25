@@ -2,6 +2,7 @@ package com.lenterosa.app.places
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lenterosa.app.offline.Connectivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,7 +58,13 @@ data class ContributeUiState(
 
 /** Formulario Aportar. La validación definitiva (y la de datos de contacto) la hace la API. */
 @HiltViewModel
-class ContributeViewModel @Inject constructor(private val repository: PlacesRepository) : ViewModel() {
+class ContributeViewModel @Inject constructor(
+    private val repository: PlacesRepository,
+    connectivity: Connectivity,
+) : ViewModel() {
+
+    /** Sin conexión no se envía la opinión ni se guarda para después (RF-10). */
+    val online: StateFlow<Boolean> = connectivity.online
 
     private val _state = MutableStateFlow(ContributeUiState())
     val state: StateFlow<ContributeUiState> = _state.asStateFlow()
@@ -90,7 +97,7 @@ class ContributeViewModel @Inject constructor(private val repository: PlacesRepo
 
     fun submit(placeId: String) {
         val current = _state.value
-        if (current.sending) return
+        if (current.sending || !online.value) return
         if (current.missing.isNotEmpty() || current.commentTooLong) {
             _state.update { it.copy(showMissing = true) }
             return
