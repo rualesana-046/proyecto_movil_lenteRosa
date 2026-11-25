@@ -12,6 +12,10 @@ import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.CredentialManagerGoogleIdTokenProvider
 import com.lenterosa.app.account.FirebaseAuthGateway
 import com.lenterosa.app.account.GoogleIdTokenProvider
+import com.lenterosa.app.discreet.AndroidHelpLocation
+import com.lenterosa.app.discreet.DataStoreDiscreetStore
+import com.lenterosa.app.discreet.DiscreetStore
+import com.lenterosa.app.discreet.HelpLocation
 import com.lenterosa.app.map.AndroidDeviceLocation
 import com.lenterosa.app.map.DeviceLocation
 import com.lenterosa.app.network.AndroidNetworkStatus
@@ -99,4 +103,10 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun onboardingStore(implementation: DataStoreOnboardingStore): OnboardingStore
+
+    @Binds
+    abstract fun discreetStore(implementation: DataStoreDiscreetStore): DiscreetStore
+
+    @Binds
+    abstract fun helpLocation(implementation: AndroidHelpLocation): HelpLocation
 }

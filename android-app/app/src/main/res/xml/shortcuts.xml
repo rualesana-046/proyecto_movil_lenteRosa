@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Atajo del ícono (RF-08): al mantener presionado el ícono aparece "Atajo", que abre el Modo discreto. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="modo_discreto"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_neutral"
+        android:shortcutShortLabel="@string/discreet_label"
+        android:shortcutLongLabel="@string/discreet_label">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.lenterosa.app.discreet.DiscreetActivity"
+            android:targetPackage="com.lenterosa.app" />
+    </shortcut>
+</shortcuts>
