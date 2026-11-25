@@ -3,6 +3,7 @@ package com.lenterosa.api.alerts.application;
 import static com.lenterosa.api.comfortindex.ComfortLabel.COMFORTABLE;
 import static com.lenterosa.api.comfortindex.ComfortLabel.FEW_OPINIONS;
 import static com.lenterosa.api.comfortindex.ComfortLabel.MIXED_OPINIONS;
+import static com.lenterosa.api.comfortindex.ComfortLabel.VERY_COMFORTABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.lenterosa.api.alerts.domain.ComfortSnapshot;
@@ -62,14 +63,28 @@ class AlertServiceTest {
     @DisplayName("Si el lugar vuelve a cambiar antes de leer el aviso, se actualiza el mismo aviso")
     void secondChangeUpdatesTheUnreadAlert() {
         savers.put(PLACE, List.of("uid-bea"));
-        service.onReviewContributed(event("uid-ana", FEW_OPINIONS, null, COMFORTABLE, 68));
+        service.onReviewContributed(event("uid-ana", VERY_COMFORTABLE, 80, COMFORTABLE, 68));
 
         service.onReviewContributed(event("uid-cami", COMFORTABLE, 68, MIXED_OPINIONS, 52));
 
         assertThat(repository.unread("uid-bea")).singleElement().satisfies(alert -> {
-            assertThat(alert.previous()).isEqualTo(new ComfortSnapshot(FEW_OPINIONS, null));
+            assertThat(alert.previous()).isEqualTo(new ComfortSnapshot(VERY_COMFORTABLE, 80));
             assertThat(alert.current()).isEqualTo(new ComfortSnapshot(MIXED_OPINIONS, 52));
         });
+    }
+
+    @Test
+    @DisplayName("Al pasar de Pocas opiniones a tener etiqueta no hay aviso; si un aviso pendiente queda en Pocas opiniones, se retira")
+    void fewOpinionsDoNotNotify() {
+        savers.put(PLACE, List.of("uid-bea"));
+
+        service.onReviewContributed(event("uid-ana", FEW_OPINIONS, null, COMFORTABLE, 68));
+        assertThat(repository.unread("uid-bea")).isEmpty();
+
+        service.onReviewContributed(event("uid-cami", COMFORTABLE, 68, MIXED_OPINIONS, 52));
+        assertThat(repository.unread("uid-bea")).hasSize(1);
+        service.onReviewContributed(event("uid-dani", MIXED_OPINIONS, 52, FEW_OPINIONS, 50));
+        assertThat(repository.unread("uid-bea")).isEmpty();
     }
 
     @Test

@@ -29,6 +29,8 @@ class SavedPlacesAndAlertsApiIntegrationTest {
 
     private static final String GOOD_DAY = """
             {"lighting":5,"womenPresence":5,"commercialVisibility":5,"visitPeriod":"DAY"}""";
+    private static final String BAD_NIGHT = """
+            {"lighting":1,"womenPresence":1,"commercialVisibility":1,"nightExperience":1,"visitPeriod":"NIGHT"}""";
 
     @Value("${local.server.port}")
     int port;
@@ -104,26 +106,40 @@ class SavedPlacesAndAlertsApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Cuando una opinión cambia la etiqueta de un lugar guardado, quien lo guardó recibe un aviso sin saber quién opinó")
-    void relevantChangeCreatesAlert() throws Exception {
+    @DisplayName("Mientras el lugar tiene pocas opiniones no hay avisos, aunque luego reciba etiqueta")
+    void noAlertsWhileFewOpinions() throws Exception {
         send("PUT", "/api/v1/me/saved-places/" + placeId, bea);
 
-        // Con dos opiniones recién publicadas la evidencia es apenas menor que 2 (por el peso por
-        // antigüedad), así que el lugar sigue con pocas opiniones: no hay aviso.
         assertThat(post(placeId, ana, GOOD_DAY).statusCode()).isEqualTo(201);
         assertThat(post(placeId, dani, GOOD_DAY).statusCode()).isEqualTo(201);
-        assertThat(json.readTree(send("GET", "/api/v1/me/alerts", bea).body()).get("unreadCount").asInt()).isZero();
-
-        // La tercera opinión le da etiqueta al lugar: cambio relevante.
+        // La tercera opinión le da etiqueta al lugar, pero antes no había evidencia suficiente para comparar.
         assertThat(post(placeId, cami, GOOD_DAY).statusCode()).isEqualTo(201);
+        assertThat(json.readTree(send("GET", "/api/v1/places/" + placeId, null).body()).get("comfort").get("label").asString())
+                .isNotEqualTo("FEW_OPINIONS");
+
+        assertThat(json.readTree(send("GET", "/api/v1/me/alerts", bea).body()).get("unreadCount").asInt()).isZero();
+    }
+
+    @Test
+    @DisplayName("Con evidencia suficiente, un cambio de etiqueta avisa a quien guardó el lugar, sin decir quién opinó")
+    void relevantChangeCreatesAlert() throws Exception {
+        insertGoodHistory(placeId, 4);
+        String before = json.readTree(send("GET", "/api/v1/places/" + placeId, null).body()).get("comfort").get("label").asString();
+        assertThat(before).isNotEqualTo("FEW_OPINIONS");
+        send("PUT", "/api/v1/me/saved-places/" + placeId, bea);
+
+        // Opiniones de noche muy incómodas hasta que la etiqueta cambie.
+        for (String author : new String[] {ana, cami, dani}) {
+            assertThat(post(placeId, author, BAD_NIGHT).statusCode()).isEqualTo(201);
+        }
         HttpResponse<String> response = send("GET", "/api/v1/me/alerts", bea);
         JsonNode inbox = json.readTree(response.body());
 
         assertThat(inbox.get("unreadCount").asInt()).isEqualTo(1);
         JsonNode alert = inbox.get("items").get(0);
         assertThat(alert.get("placeId").asString()).isEqualTo(placeId.toString());
-        assertThat(alert.get("previousLabel").asString()).isEqualTo("FEW_OPINIONS");
-        assertThat(alert.get("newLabel").asString()).isNotEqualTo("FEW_OPINIONS");
+        assertThat(alert.get("previousLabel").asString()).isEqualTo(before);
+        assertThat(alert.get("newLabel").asString()).isNotIn(before, "FEW_OPINIONS");
         assertThat(response.body()).doesNotContain("uid-ana").doesNotContain("uid-cami").doesNotContain("uid-dani");
         // Quien opinó y no guardó el lugar no recibe nada.
         assertThat(json.readTree(send("GET", "/api/v1/me/alerts", cami).body()).get("unreadCount").asInt()).isZero();
@@ -137,16 +153,27 @@ class SavedPlacesAndAlertsApiIntegrationTest {
     @Test
     @DisplayName("Al eliminar la cuenta se borran sus lugares guardados y sus avisos")
     void deletingAccountRemovesSavedPlacesAndAlerts() throws Exception {
+        insertGoodHistory(placeId, 4);
         send("PUT", "/api/v1/me/saved-places/" + placeId, bea);
-        post(placeId, ana, GOOD_DAY);
-        post(placeId, dani, GOOD_DAY);
-        post(placeId, cami, GOOD_DAY);
+        for (String author : new String[] {ana, cami, dani}) {
+            post(placeId, author, BAD_NIGHT);
+        }
         assertThat(jdbc.queryForObject("SELECT count(*) FROM alerts WHERE user_id = 'uid-bea'", Integer.class)).isEqualTo(1);
 
         assertThat(send("DELETE", "/api/v1/me", bea).statusCode()).isEqualTo(204);
 
         assertThat(jdbc.queryForObject("SELECT count(*) FROM saved_places WHERE user_id = 'uid-bea'", Integer.class)).isZero();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM alerts WHERE user_id = 'uid-bea'", Integer.class)).isZero();
+    }
+
+    // Opiniones anteriores muy buenas, de día y de noche, sin autora registrada: dan evidencia suficiente.
+    private void insertGoodHistory(UUID place, int count) {
+        for (int i = 0; i < count; i++) {
+            jdbc.update("""
+                    INSERT INTO reviews (id, place_id, lighting, women_presence, commercial_visibility, night_experience, visit_period, created_at)
+                    VALUES (gen_random_uuid(), ?, 5, 5, 5, 5, 'NIGHT', now() - make_interval(hours => ?))
+                    """, place, i + 1);
+        }
     }
 
     private UUID insertPlace(String name) {
