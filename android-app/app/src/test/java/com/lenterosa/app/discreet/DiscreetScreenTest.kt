@@ -94,6 +94,34 @@ class DiscreetScreenTest {
     }
 
     @Test
+    fun `con el aviso de Deshacer y un estado a la vez, el acceso al 123 sigue visible y sin tapar`() {
+        show(DiscreetUiState(call = FakeCall.Scheduled(8), undo = UndoOffer.Call(10), sendStatus = SendStatus.MESSAGE_READY))
+
+        compose.onNodeWithTag(DiscreetTags.EMERGENCY).assertIsDisplayed()
+        val emergency = compose.onNodeWithTag(DiscreetTags.EMERGENCY).fetchSemanticsNode().boundsInRoot
+        val undo = compose.onNodeWithTag(DiscreetTags.UNDO).fetchSemanticsNode().boundsInRoot
+        assertFalse("Deshacer tapa el 123: $undo sobre $emergency", undo.overlaps(emergency))
+        // Una sola cuenta regresiva, la del aviso, con los segundos que faltan.
+        compose.onNodeWithText("La llamada sonará en 8 s.").assertIsDisplayed()
+        compose.onNodeWithText("La llamada sonará en 10 s.").assertDoesNotExist()
+    }
+
+    @Test
+    fun `en la llamada simulada se puede tocar el texto de Contestar y de Colgar, no solo el círculo`() {
+        var answered = 0
+        var hungUp = 0
+        compose.setContent {
+            LenteRosaTheme { FakeCallScreen(FakeCall.Ringing("Mamá"), onAnswer = { answered++ }, onHangUp = { hungUp++ }) }
+        }
+
+        compose.onNodeWithText("Contestar").performClick()
+        compose.onNodeWithText("Colgar").performClick()
+
+        assertEquals(1, answered)
+        assertEquals(1, hungUp)
+    }
+
+    @Test
     fun `la ubicación aproximada se avisa como menos exacta`() {
         show(DiscreetUiState(sendStatus = SendStatus.MESSAGE_READY_APPROXIMATE))
 

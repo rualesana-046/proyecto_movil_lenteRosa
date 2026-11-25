@@ -1,6 +1,7 @@
 package com.lenterosa.app.discreet
 
 import android.Manifest
+import android.app.ActivityManager
 import android.app.KeyguardManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -32,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.lenterosa.app.R
 import com.lenterosa.app.ui.glass.ProvideVisualPreferences
 import com.lenterosa.app.ui.glass.VisualPreferences
 import com.lenterosa.app.ui.motion.Motion
@@ -57,6 +59,14 @@ class DiscreetActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // Mientras está abierta, en Recientes se ve como "Atajo" y con la miniatura en negro.
+        val neutral = getString(R.string.discreet_label)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setTaskDescription(ActivityManager.TaskDescription.Builder().setLabel(neutral).build())
+        } else {
+            @Suppress("DEPRECATION")
+            setTaskDescription(ActivityManager.TaskDescription(neutral))
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
         } else {
