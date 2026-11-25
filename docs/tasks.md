@@ -73,7 +73,7 @@ Lo que no se pudo verificar en el emulador ni con pruebas automáticas. Se marca
   - tono y vibración de la llamada simulada (en el emulador solo se comprobó que la vibración corría);
   - enviar la ubicación precisa y aproximada a un contacto de confianza por la app de mensajes;
   - el 123 en el marcador;
-  - la métrica de 5 segundos con `DiscreetLaunchTimeTest`: en el emulador, que dibuja por software, tardó de 3,9 a 7,5 s.
+  - la métrica de 5 segundos con `DiscreetLaunchTimeTest`: en el emulador con gráficos por hardware la app tarda de 0,6 a 1,1 s; falta medirla en el teléfono.
 
 ## Alcance del piloto: Pasto
 
