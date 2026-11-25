@@ -12,7 +12,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | API mínima | Spring Boot, `/api/v1/health`, Flyway con PostGIS, pruebas con Testcontainers | completada | #1 |
 | App mínima | Kotlin, Compose, Material 3, minSdk 26 | completada | #1 |
 | CI | Compilación y pruebas de API y app en GitHub Actions | completada | #1 |
-| Despliegue | API en Cloud Run con Neon y secretos; prueba de humo (RNF-05) | pendiente | — |
+| Despliegue | API en Cloud Run con Neon y secretos en Secret Manager (incluida la cuenta de servicio de Firebase Admin para FCM); prueba de humo (RNF-05) | pendiente | — |
 | Despliegue automático | Publicación de la API desde GitHub Actions con Workload Identity Federation | pendiente | — |
 
 ## Requisitos funcionales
@@ -25,7 +25,7 @@ Estados: **pendiente**, **en curso**, **bloqueada**, **en revisión**, **complet
 | RF-04 | Aportar opinión | `reviews` (creación con autora, límite de abuso, comentarios sin datos de contacto; ADR 0007), pantalla Aportar | completada: API y pantalla Aportar en la app | #10, #11 |
 | RF-05 | Lugares guardados | `users` (tabla y endpoints, límite de 100), botón de guardar y pestaña Guardados en la app (ADR 0012) | en revisión | #16 |
 | RF-06 | Cápsula de IA | `insights`: Gemini Flash, validación de salida, plantillas de respaldo | pendiente | — |
-| RF-07 | Alertas de cambio | `alerts`: detección de cambios en cada opinión y avisos sutiles en la app (ADR 0012); el envío por FCM espera aprobación de credenciales | en revisión: avisos en la app; falta FCM | #16 |
+| RF-07 | Alertas de cambio | `alerts`: detección de cambios en cada opinión, sin avisos en "Pocas opiniones", y novedades dentro de la app (ADR 0012) | en revisión: avisos en la app; FCM llega con el despliegue | #16 |
 | RF-08 | Modo discreto | App: atajo del ícono, tile de ajustes rápidos, tres acciones con estados reales | pendiente | — |
 | RF-09 | Mapa | App: MapLibre con OpenFreeMap (Stadia como alternativa), atribución siempre visible, "Cerca de mí" bajo demanda y aviso de privacidad (ADR 0009) | completada | #12 |
 | RF-10 | Sin conexión | App: caché Room, antigüedad visible, errores de red claros | pendiente | — |
@@ -55,7 +55,7 @@ Primero se termina toda la app; después vienen el despliegue de la API y el APK
 5. Caché sin conexión con la antigüedad de los datos (RF-10).
 6. Cápsula de IA con Gemini (RF-06). Antes se le indica a AM qué debe crear en Google AI Studio.
 7. Repaso de accesibilidad (RNF-02).
-8. Despliegue de la API (RNF-05) y APK firmado para el teléfono (RNF-06).
+8. Despliegue de la API (RNF-05) y APK firmado para el teléfono (RNF-06), con los secretos en Secret Manager. Incluye el envío de avisos por FCM (RF-07, ADR 0012): cuenta de servicio de Firebase Admin, token del teléfono y permiso de notificaciones.
 
 ## Pruebas pendientes en dispositivo real
 
@@ -81,4 +81,4 @@ El piloto se hace en Pasto (Nariño): los datos ficticios del seed, la demostrac
 
 ## Decisiones pendientes
 
-- **RF-07, envío por FCM:** requiere credenciales de Firebase Admin (secreto) y guardar el token de notificaciones de cada teléfono (privacidad). Espera la aprobación de AM (ADR 0012).
+- Ninguna por ahora.
