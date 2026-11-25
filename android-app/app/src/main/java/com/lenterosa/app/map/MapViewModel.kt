@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.account.Session
+import com.lenterosa.app.offline.Connectivity
 import com.lenterosa.app.places.GeoPoint
 import com.lenterosa.app.places.LoadState
 import com.lenterosa.app.places.Loaded
 import com.lenterosa.app.places.PilotArea
 import com.lenterosa.app.places.PlaceSummary
 import com.lenterosa.app.places.PlacesRepository
+import com.lenterosa.app.places.toState
 import com.lenterosa.app.saved.SaveResult
 import com.lenterosa.app.saved.SavedPlacesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,7 +57,11 @@ class MapViewModel @Inject constructor(
     private val location: DeviceLocation,
     auth: AuthGateway,
     private val saved: SavedPlacesStore,
+    connectivity: Connectivity,
 ) : ViewModel() {
+
+    /** Sin conexión, Aportar de la tarjeta queda desactivado (RF-10). */
+    val online: StateFlow<Boolean> = connectivity.online
 
     private val _state = MutableStateFlow(MapUiState())
     val state: StateFlow<MapUiState> = _state.asStateFlow()
@@ -117,7 +123,7 @@ class MapViewModel @Inject constructor(
                     _state.update {
                         it.copy(locating = false, camera = CameraTarget(result.point, NEARBY_ZOOM, it.camera.version + 1))
                     }
-                    search(result.point, NEAR_ME_RADIUS_METERS)
+                    search(result.point, NEAR_ME_RADIUS_METERS, cacheable = false)
                 }
                 LocationResult.PermissionMissing -> locationFailed(LocationMessage.PERMISSION_DENIED)
                 LocationResult.Disabled -> locationFailed(LocationMessage.DISABLED)
@@ -136,16 +142,13 @@ class MapViewModel @Inject constructor(
     private fun locationFailed(message: LocationMessage) =
         _state.update { it.copy(locating = false, locationMessage = message) }
 
-    private fun search(center: GeoPoint, radiusMeters: Int) {
+    private fun search(center: GeoPoint, radiusMeters: Int, cacheable: Boolean = true) {
         lastSearchCenter = center
         _state.update { it.copy(places = LoadState.Loading, canSearchHere = false) }
         viewModelScope.launch {
-            val result = repository.nearby(center, query = null, radiusMeters = radiusMeters)
+            val result = repository.nearby(center, query = null, radiusMeters = radiusMeters, cacheable = cacheable)
             _state.update { current ->
-                val places = when (result) {
-                    is Loaded.Success -> LoadState.Ready(result.value)
-                    is Loaded.Failed -> LoadState.Error(result.failure)
-                }
+                val places = result.toState()
                 val stillVisible = (places as? LoadState.Ready)?.value?.any { it.id == current.selectedId } == true
                 current.copy(places = places, selectedId = current.selectedId.takeIf { stillVisible })
             }

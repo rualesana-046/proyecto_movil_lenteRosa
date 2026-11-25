@@ -187,6 +187,7 @@ fun HomeScreen(
     // Se lee una vez al entrar: así, al volver de la ficha, el mapa sigue en la zona que se miraba.
     val initialCamera = remember { mapViewModel.currentCamera() }
     val savedIds by mapViewModel.savedIds.collectAsStateWithLifecycle()
+    val online by mapViewModel.online.collectAsStateWithLifecycle()
     val unreadAlerts by mapViewModel.unreadAlerts.collectAsStateWithLifecycle()
     val saveMessage by mapViewModel.saveMessage.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -227,6 +228,7 @@ fun HomeScreen(
                 },
                 onCloseCard = { mapViewModel.select(null) },
                 savedIds = savedIds,
+                online = online,
                 onToggleSaved = { place -> mapViewModel.toggleSaved(place.id) },
                 map = { modifier ->
                     PlacesMap(

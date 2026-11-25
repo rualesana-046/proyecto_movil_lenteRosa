@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import com.lenterosa.app.offline.FakeOfflineCache
+import com.lenterosa.app.offline.OfflineCache
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.builtins.serializer
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -23,12 +27,13 @@ class AccountViewModelTest {
     private val auth = FakeAuthGateway()
     private val api = FakeAccountApi(auth.events)
     private var hasInternet = true
+    private val cache = FakeOfflineCache()
     private lateinit var viewModel: AccountViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = AccountViewModel(auth, AccountRepository(auth, api) { hasInternet })
+        viewModel = AccountViewModel(auth, AccountRepository(auth, api, network = { hasInternet }, cache = cache))
     }
 
     @After
@@ -83,7 +88,7 @@ class AccountViewModelTest {
     fun `al abrir la app con sesión se reintenta el registro en la API sin avisos`() {
         auth.signInBlocking()
 
-        val reopened = AccountViewModel(auth, AccountRepository(auth, api) { hasInternet })
+        val reopened = AccountViewModel(auth, AccountRepository(auth, api, network = { hasInternet }, cache = cache))
 
         assertEquals(listOf("Bearer token-1"), api.registered)
         assertNull(reopened.state.value.message)
@@ -115,6 +120,28 @@ class AccountViewModelTest {
         assertEquals(listOf("reauth:password", "token:refresh", "api:delete", "firebase:delete", "signOut"), auth.events)
         assertNull(viewModel.state.value.session)
         assertEquals(AccountMessage.ACCOUNT_DELETED, viewModel.state.value.message)
+    }
+
+    @Test
+    fun `al cerrar sesión se borran del teléfono los guardados y avisos de la cuenta`() = runTest {
+        viewModel.signIn("ana@ejemplo.com", "secreta")
+        cache.put(OfflineCache.savedKey("uid-1"), String.serializer(), "guardados")
+        cache.put(OfflineCache.placeKey("p1"), String.serializer(), "ficha")
+
+        viewModel.signOut()
+
+        assertNull(cache.get(OfflineCache.savedKey("uid-1"), String.serializer()))
+        assertEquals("ficha", cache.get(OfflineCache.placeKey("p1"), String.serializer())?.value)
+    }
+
+    @Test
+    fun `al eliminar la cuenta se borran del teléfono sus guardados y avisos`() = runTest {
+        viewModel.signIn("ana@ejemplo.com", "secreta")
+        cache.put(OfflineCache.savedKey("uid-1"), String.serializer(), "guardados")
+
+        viewModel.deleteAccount(Reauthentication.WithPassword("secreta"))
+
+        assertNull(cache.get(OfflineCache.savedKey("uid-1"), String.serializer()))
     }
 
     @Test

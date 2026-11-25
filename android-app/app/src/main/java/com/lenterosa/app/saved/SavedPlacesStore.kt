@@ -5,9 +5,11 @@ import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.account.AuthException
 import com.lenterosa.app.account.AuthGateway
 import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.offline.OfflineCache
 import com.lenterosa.app.places.LoadFailure
 import com.lenterosa.app.places.PlaceDetail
 import com.lenterosa.app.places.PlacesApi
+import com.lenterosa.app.places.Staleness
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,17 +20,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.Serializable
 import retrofit2.HttpException
 
 /** Resultado de guardar o quitar un lugar. */
 enum class SaveResult { DONE, NOT_SIGNED_IN, LIMIT_REACHED, FAILED }
 
 /** Lo que muestra la pestaña Guardados. */
+@Serializable
 data class SavedOverview(val places: List<PlaceDetail>, val inbox: AlertInbox)
 
 sealed interface SavedLoad {
     data object NotSignedIn : SavedLoad
-    data class Ready(val overview: SavedOverview) : SavedLoad
+
+    /** `stale` no es nulo si viene de la caché sin conexión (RF-10). */
+    data class Ready(val overview: SavedOverview, val stale: Staleness? = null) : SavedLoad
     data class Failed(val failure: LoadFailure) : SavedLoad
 }
 
@@ -42,6 +48,7 @@ class SavedPlacesStore @Inject constructor(
     private val places: PlacesApi,
     private val auth: AuthGateway,
     private val network: NetworkStatus,
+    private val cache: OfflineCache,
 ) {
 
     private val _savedIds = MutableStateFlow<Set<String>>(emptySet())
@@ -57,6 +64,8 @@ class SavedPlacesStore @Inject constructor(
         if (auth.session.value == null) {
             _savedIds.value = emptySet()
             _unreadCount.value = 0
+            // Sin sesión no queda nada de la cuenta en el teléfono (RF-10).
+            cache.clearSaved()
             return
         }
         try {
@@ -74,22 +83,34 @@ class SavedPlacesStore @Inject constructor(
 
     /** Guardados con su ficha y avisos, para la pestaña Guardados. */
     suspend fun overview(): SavedLoad {
-        if (auth.session.value == null) return SavedLoad.NotSignedIn
-        return try {
+        val session = auth.session.value
+        if (session == null) {
+            cache.clearSaved()
+            return SavedLoad.NotSignedIn
+        }
+        val key = OfflineCache.savedKey(session.uid)
+        val failure = try {
             val bearer = bearer()
             val saved = api.savedPlaces(bearer)
             val inbox = api.alerts(bearer)
             val details = coroutineScope { saved.map { async { runCatching { places.detail(it.placeId) }.getOrNull() } }.awaitAll() }
             _savedIds.value = saved.map { it.placeId }.toSet()
             _unreadCount.value = inbox.unreadCount
-            SavedLoad.Ready(SavedOverview(details.filterNotNull(), inbox))
+            val overview = SavedOverview(details.filterNotNull(), inbox)
+            cache.put(key, SavedOverview.serializer(), overview)
+            return SavedLoad.Ready(overview)
         } catch (e: HttpException) {
-            if (e.code() == 401) SavedLoad.NotSignedIn else SavedLoad.Failed(LoadFailure.SERVER)
+            if (e.code() == 401) return SavedLoad.NotSignedIn
+            LoadFailure.SERVER
         } catch (e: IOException) {
-            SavedLoad.Failed(if (network.hasInternet()) LoadFailure.SERVER_UNREACHABLE else LoadFailure.NETWORK)
+            if (network.hasInternet()) LoadFailure.SERVER_UNREACHABLE else LoadFailure.NETWORK
         } catch (e: AuthException) {
-            SavedLoad.NotSignedIn
+            if (e.failure == com.lenterosa.app.account.AuthFailure.NETWORK) LoadFailure.NETWORK else return SavedLoad.NotSignedIn
         }
+        // Sin conexión: lo último guardado de esta cuenta, con su fecha.
+        val cached = cache.get(key, SavedOverview.serializer()) ?: return SavedLoad.Failed(failure)
+        _savedIds.value = cached.value.places.map { it.id }.toSet()
+        return SavedLoad.Ready(cached.value, Staleness(cached.savedAtMillis, failure))
     }
 
     /** Guarda o quita el lugar. El cambio se ve al instante y se deshace si la API falla. */

@@ -3,6 +3,7 @@ package com.lenterosa.app.account
 import android.util.Log
 import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.offline.OfflineCache
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,7 +21,14 @@ class AccountRepository @Inject constructor(
     private val auth: AuthGateway,
     private val api: AccountApi,
     private val network: NetworkStatus,
+    private val cache: OfflineCache,
 ) {
+
+    /** Al cerrar sesión o eliminar la cuenta, no queda en el teléfono nada de la cuenta (RF-10). */
+    suspend fun clearLocalAccountData() {
+        cache.clearSaved()
+    }
+
 
     /** Registra la cuenta en la API después de iniciar sesión. */
     suspend fun registerInApi() {
@@ -42,6 +50,7 @@ class AccountRepository @Inject constructor(
         }
         auth.deleteFirebaseAccount()
         auth.signOut()
+        clearLocalAccountData()
     }
 
     private suspend fun bearer(forceRefresh: Boolean = false) = "Bearer ${auth.idToken(forceRefresh)}"

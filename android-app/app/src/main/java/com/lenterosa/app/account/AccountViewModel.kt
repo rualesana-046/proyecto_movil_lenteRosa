@@ -100,7 +100,10 @@ class AccountViewModel @Inject constructor(
         message.value = AccountMessage.NICKNAME_SAVED
     }
 
-    fun signOut() = auth.signOut()
+    fun signOut() {
+        auth.signOut()
+        viewModelScope.launch { accounts.clearLocalAccountData() }
+    }
 
     /** Reautenticación, API (opiniones anónimas) y Firebase, en ese orden. */
     fun deleteAccount(reauthentication: Reauthentication) = perform {

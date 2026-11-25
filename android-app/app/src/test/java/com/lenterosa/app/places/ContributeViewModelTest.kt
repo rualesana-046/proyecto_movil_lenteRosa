@@ -22,7 +22,7 @@ class ContributeViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = ContributeViewModel(repository(api))
+        viewModel = ContributeViewModel(repository(api), com.lenterosa.app.offline.FakeConnectivity())
     }
 
     @After

@@ -60,5 +60,9 @@ internal class FakeSavedApi : SavedApi {
 internal fun alert(placeId: String = "p1", read: Boolean = false) =
     AlertDto("a1", placeId, "COMFORTABLE", 66, "MIXED_OPINIONS", 52, "2026-11-20T12:00:00Z", read)
 
-internal fun store(api: SavedApi = FakeSavedApi(), auth: AuthGateway = FakeSessionGateway(), hasInternet: Boolean = true) =
-    SavedPlacesStore(api, FakePlacesApi(), auth) { hasInternet }
+internal fun store(
+    api: SavedApi = FakeSavedApi(),
+    auth: AuthGateway = FakeSessionGateway(),
+    hasInternet: Boolean = true,
+    cache: com.lenterosa.app.offline.OfflineCache = com.lenterosa.app.offline.FakeOfflineCache(),
+) = SavedPlacesStore(api, FakePlacesApi(), auth, { hasInternet }, cache)

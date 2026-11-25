@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -42,6 +43,11 @@ import com.lenterosa.app.ui.glass.GlassTopBar
 import com.lenterosa.app.ui.glass.currentMotion
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+
+object ContributeTags {
+    const val SUBMIT = "contribute_submit"
+    const val OFFLINE = "contribute_offline"
+}
 
 /** Pantalla Aportar (RF-04): tres aspectos obligatorios, día o noche y experiencia nocturna. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,10 +115,16 @@ fun ContributeScreen(
                 if (state.message != null) shown = state.message
                 shown?.let { MessageCard(it, onOpenAccount) }
             }
+            // Sin conexión no se envía ni se guarda para después: el botón se desactiva y se explica.
+            val online by viewModel.online.collectAsStateWithLifecycle()
+            if (!online) {
+                Text(stringResource(R.string.offline_contribute_needs_connection), style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag(ContributeTags.OFFLINE))
+            }
             Button(
                 onClick = { viewModel.submit(placeId) },
-                enabled = !state.sending,
-                modifier = Modifier.fillMaxWidth(),
+                enabled = !state.sending && online,
+                modifier = Modifier.fillMaxWidth().testTag(ContributeTags.SUBMIT),
             ) {
                 Text(stringResource(if (state.sending) R.string.contribute_sending else R.string.contribute_submit))
             }

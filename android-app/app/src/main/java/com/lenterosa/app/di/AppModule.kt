@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.lenterosa.app.BuildConfig
 import com.lenterosa.app.account.AccountApi
@@ -20,6 +21,12 @@ import com.lenterosa.app.map.AndroidDeviceLocation
 import com.lenterosa.app.map.DeviceLocation
 import com.lenterosa.app.network.AndroidNetworkStatus
 import com.lenterosa.app.network.NetworkStatus
+import com.lenterosa.app.offline.AndroidConnectivity
+import com.lenterosa.app.offline.CacheDao
+import com.lenterosa.app.offline.CacheDatabase
+import com.lenterosa.app.offline.Connectivity
+import com.lenterosa.app.offline.OfflineCache
+import com.lenterosa.app.offline.RoomOfflineCache
 import com.lenterosa.app.onboarding.DataStoreOnboardingStore
 import com.lenterosa.app.onboarding.OnboardingStore
 import com.lenterosa.app.places.PlacesApi
@@ -78,6 +85,15 @@ object AppModule {
     @Singleton
     fun savedApi(retrofit: Retrofit): SavedApi = retrofit.create(SavedApi::class.java)
 
+    /** Caché sin conexión (RF-10). No entra en copias de seguridad ni transferencias (TD-03). */
+    @Provides
+    @Singleton
+    fun cacheDatabase(@ApplicationContext context: Context): CacheDatabase =
+        Room.databaseBuilder(context, CacheDatabase::class.java, "cache_sin_conexion.db").build()
+
+    @Provides
+    fun cacheDao(database: CacheDatabase): CacheDao = database.cache()
+
     /** Ajustes locales de la app (por ahora, si la bienvenida ya se completó). Nunca datos personales. */
     @Provides
     @Singleton
@@ -103,6 +119,12 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun onboardingStore(implementation: DataStoreOnboardingStore): OnboardingStore
+
+    @Binds
+    abstract fun offlineCache(implementation: RoomOfflineCache): OfflineCache
+
+    @Binds
+    abstract fun connectivity(implementation: AndroidConnectivity): Connectivity
 
     @Binds
     abstract fun discreetStore(implementation: DataStoreDiscreetStore): DiscreetStore
