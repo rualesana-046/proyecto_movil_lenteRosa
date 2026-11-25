@@ -60,9 +60,11 @@ jobs:
       # google-services.json no se versiona: el CI usa uno de relleno, con valores falsos, solo para compilar.
       - name: Usar google-services.json de relleno
         run: cp ../.github/ci/google-services.placeholder.json app/google-services.json
-      # Robolectric necesita un Android de unos cientos de MB que vive solo en Maven Central, que a
-      # veces responde 429 a los runners. Se guarda en una caché propia apenas se descarga (también en
-      # ramas de PR) y la descarga reintenta con espera.
+      # Robolectric necesita un Android de unos 200 MB que se publica en Maven Central. Maven Central
+      # a veces responde 429 a los runners con un Retry-After de horas, y curl lo respeta: así se
+      # canceló el job por tiempo. Por eso se descarga primero del espejo público de Maven Central
+      # en Google Cloud Storage, con tiempos máximos por intento, se comprueba su SHA-256 y se
+      # guarda en una caché propia apenas se descarga (también en ramas de PR).
       - name: Versión del Android de Robolectric
         id: robolectric
         run: echo "version=$(sed -n 's/^robolectricAndroidAll = "\(.*\)"$/\1/p' gradle/libs.versions.toml)" >> "$GITHUB_OUTPUT"
@@ -76,12 +78,23 @@ jobs:
         if: steps.robolectric-cache.outputs.cache-hit != 'true'
         env:
           VERSION: ${{ steps.robolectric.outputs.version }}
+          # SHA-256 de android-all-instrumented-15-robolectric-13954326-i7.jar (su SHA-1 coincide con
+          # el publicado en Maven Central). Se actualiza junto con robolectricAndroidAll.
+          SHA256: 06c4c8602d6db7486266a982bc55834ed6dfebd62a0b88daca204139ecf142cb
         run: |
-          version="$VERSION"
+          jar="android-all-instrumented-$VERSION.jar"
+          path="org/robolectric/android-all-instrumented/$VERSION/$jar"
           mkdir -p ~/robolectric-deps
-          curl --fail --location --retry 6 --retry-delay 30 --retry-all-errors \
-            -o ~/robolectric-deps/android-all-instrumented-$version.jar \
-            "https://repo1.maven.org/maven2/org/robolectric/android-all-instrumented/$version/android-all-instrumented-$version.jar"
+          for base in https://maven-central.storage-download.googleapis.com/maven2 https://repo1.maven.org/maven2; do
+            if curl --fail --location --silent --show-error --max-time 600 \
+                 --retry 3 --retry-delay 20 --retry-max-time 900 --retry-all-errors \
+                 -o ~/robolectric-deps/"$jar" "$base/$path"; then
+              echo "Descargado de $base"
+              break
+            fi
+            echo "No se pudo descargar de $base"
+          done
+          echo "$SHA256  $HOME/robolectric-deps/$jar" | sha256sum --check
       - name: Guardar el Android de Robolectric
         if: steps.robolectric-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
