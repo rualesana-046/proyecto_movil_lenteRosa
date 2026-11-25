@@ -60,7 +60,18 @@ RF-08 pide un modo discreto de ayuda rápida: se abre con un atajo del ícono y 
     - el presupuesto de la app es de **2 s**, y los otros 3 s quedan para el gesto de la usuaria;
     - se corre en un dispositivo con `connectedDebugAndroidTest`; el CI no tiene emulador.
 12. **Arranque más liviano:** MapLibre ya no se inicializa al abrir la app, sino al mostrar el mapa por primera vez. Así el tile y el atajo no pagan el arranque del mapa.
-13. **Resultado en el emulador de desarrollo:** entre 3,9 y 7,5 s, por encima del presupuesto. El emulador dibuja por software (SwiftShader) y tiene un solo núcleo, y el propio sistema perdía de 30 a 58 cuadros. Con la app precompilada siguió en 3,9–5,9 s. La medición válida queda pendiente en un teléfono real y en la versión de publicación con R8 y perfil de arranque (TD-11).
+13. **Resultados en el emulador de desarrollo:**
+    - **Con gráficos por software** (SwiftShader o lavapipe, 1 núcleo): entre 3,9 y 7,5 s, por encima del presupuesto. El propio sistema perdía de 30 a 58 cuadros.
+    - **Con gráficos por hardware** (GPU del Mac por Metal, 4 núcleos; AM autorizó el cambio): **dentro del presupuesto** en todas las mediciones, con la versión de depuración sin precompilar:
+
+      | Medición | Tiempo |
+      |---|---|
+      | Tile, primero en su ejecución | 0,84 – 1,12 s |
+      | Atajo, primero en su ejecución | 0,59 – 1,09 s |
+      | Tile, después del atajo | 0,14 – 0,16 s |
+
+      Con unos 3 s para el gesto, la activación completa queda por debajo de 5 s.
+    - **Pendiente:** confirmarlo en un teléfono real con la versión de publicación (TD-11).
 
 ## Consecuencias
 
