@@ -114,7 +114,7 @@ private fun SectionTitle(text: Int) {
     )
 }
 
-/** Aviso sutil: texto neutro, sin alarmas. "Nuevo" se escribe, no solo se colorea. */
+/** Aviso sutil: texto calmado y cotidiano, sin alarmas. "Nueva" se escribe, no solo se colorea. */
 @Composable
 private fun AlertCard(alert: AlertDto, placeName: String?, onClick: () -> Unit) {
     val now = stringResource(ComfortLevel.fromCode(alert.newLabel).label)

@@ -70,8 +70,8 @@ class SavedScreenshotTest {
                 }
             }
         }
-        compose.onNodeWithText("Cambió cómo lo percibe la comunidad: ahora «Opiniones mixtas», antes «Cómodo».").assertExists()
-        compose.onNodeWithText("Nuevo").assertExists()
+        compose.onNodeWithText("Hay opiniones nuevas: la comunidad ahora lo percibe como «Opiniones mixtas» (antes, «Cómodo»).").assertExists()
+        compose.onNodeWithText("Nueva").assertExists()
         val folder = File("build/capturas").apply { mkdirs() }
         File(folder, "$name.png").outputStream().use {
             compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)

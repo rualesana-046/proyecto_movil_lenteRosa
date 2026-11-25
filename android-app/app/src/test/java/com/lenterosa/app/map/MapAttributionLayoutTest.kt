@@ -112,18 +112,18 @@ class MapAttributionLayoutTest {
     }
 
     @Test
-    fun `con avisos sin leer la pestaña Guardados muestra un punto y lo anuncia con texto`() {
+    fun `con novedades sin leer la pestaña Guardados muestra un punto y lo anuncia con texto`() {
         compose.setContent {
             LenteRosaTheme {
                 HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}, unreadAlerts = 2) { _, _, _ -> }
             }
         }
         compose.onNodeWithTag(HomeTags.ALERTS_BADGE, useUnmergedTree = true).assertExists()
-        compose.onNode(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "2 avisos nuevos")).assertExists()
+        compose.onNode(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "2 novedades en tus lugares")).assertExists()
     }
 
     @Test
-    fun `sin avisos no hay punto en la pestaña Guardados`() {
+    fun `sin novedades no hay punto en la pestaña Guardados`() {
         compose.setContent {
             LenteRosaTheme {
                 HomeScaffold(HomeTab.MAP, onTabSelected = {}, onOpenPrivacy = {}, onOpenAccount = {}, unreadAlerts = 0) { _, _, _ -> }
