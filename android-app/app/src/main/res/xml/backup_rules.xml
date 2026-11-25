@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 o inferior (TD-03): ninguna copia de seguridad de la app. Mismo criterio que
+  data_extraction_rules.xml: datos del Modo discreto, sesión, tokens y caché del mapa nunca salen del teléfono.
+-->
+<full-backup-content>
+    <exclude domain="root" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="external" path="." />
+</full-backup-content>
